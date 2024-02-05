@@ -3,16 +3,35 @@
     var formbtn = document.querySelector(".newsletter-submit button");
 
     if (formbtn) {
-      formbtn.addEventListener("click", function(e) {
-        e.preventDefault();
+      // Function to handle form submission
+      function submitFormWithoutRefresh() {
         console.log("Form submitted without page refresh");
         // Add any additional actions or handling here
+      }
+
+      // Event listener for form button click
+      formbtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        submitFormWithoutRefresh();
       });
+
+      // Periodically check for updates every 5 seconds (adjust as needed)
+      var updateInterval = setInterval(function() {
+        console.log("Checking for updates...");
+        // Add logic to check for updates or perform periodic tasks here
+      }, 5000); // Interval is set to 5000 milliseconds (5 seconds)
+
+      // Stop the interval after a certain duration (optional)
+      setTimeout(function() {
+        clearInterval(updateInterval);
+        console.log("Update interval stopped after 30 seconds");
+      }, 30000); // Stop after 30 seconds (adjust as needed)
     } else {
       console.error('Button not found. Check the selector or HTML structure.');
     }
   });
 </script>
+
 
 
 
