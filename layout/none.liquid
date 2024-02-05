@@ -1,0 +1,122 @@
+<!doctype html>
+<html class="no-js" lang="{{ request.locale.iso_code }}">
+  <head>
+  <script>
+    window.Store = window.Store || {};
+    window.Store.id = {{ shop.id }};
+  </script>
+    <meta charset="utf-8">
+    <meta http-equiv="x-ua-compatible" content="IE=edge">
+
+    <title>
+      {{- shop.name -}}
+    </title>
+
+    {% if page_description != blank %}
+      <meta name="description" content="{{ page_description | escape }}">
+    {% endif %}
+
+    {% render 'favicon' %}
+
+    <link rel="canonical" href="{{ canonical_url }}">
+    <meta name="viewport" content="width=device-width">
+
+    {% if template.suffix == '_quickshop' %}
+      <meta name="format-detection" content="telephone=no">
+    {% endif %}
+
+    {% assign twitter_handle = settings.social_twitter | split: 'twitter.com/' | last %}
+    {%
+      render 'social-meta-tags',
+      twitter_handle: settings.twitter_handle
+    %}
+
+    {{ content_for_header }}
+
+    <script>
+      document.documentElement.className=document.documentElement.className.replace(/\bno-js\b/,'js');
+      if(window.Shopify&&window.Shopify.designMode)document.documentElement.className+=' in-theme-editor';
+      if(('ontouchstart' in window)||window.DocumentTouch&&document instanceof DocumentTouch)document.documentElement.className=document.documentElement.className.replace(/\bno-touch\b/,'has-touch');
+    </script>
+
+    {{ 'theme.css' | asset_url | stylesheet_tag }}
+
+    {% comment %}Inject theme-object begin{% endcomment %}
+    <script>
+      window.Theme = window.Theme || {};
+      window.Theme.version = '9.1.1';
+      window.Theme.name = 'Empire';
+      window.Theme.routes = {
+        "root_url": "{{ routes.root_url }}",
+        "account_url": "{{ routes.account_url }}",
+        "account_login_url": "{{ routes.account_login_url }}",
+        "account_logout_url": "{{ routes.account_logout_url }}",
+        "account_register_url": "{{ routes.account_register_url }}",
+        "account_addresses_url": "{{ routes.account_addresses_url }}",
+        "collections_url": "{{ routes.collections_url }}",
+        "all_products_collection_url": "{{ routes.all_products_collection_url }}",
+        "search_url": "{{ routes.search_url }}",
+        "predictive_search_url": "{{ routes.predictive_search_url }}",
+        "cart_url": "{{ routes.cart_url }}",
+        "cart_add_url": "{{ routes.cart_add_url }}",
+        "cart_change_url": "{{ routes.cart_change_url }}",
+        "cart_clear_url": "{{ routes.cart_clear_url }}",
+        "product_recommendations_url": "{{ routes.product_recommendations_url }}",
+      };
+    </script>
+    {% comment %}Inject theme-object end{% endcomment %}
+
+  </head>
+
+  <body class="template-{{ template | split: '.' | first }}">
+    <main class="site-main" aria-label="main content" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    {% comment %}
+      Modal container, used on Collections, Password, and QuickShop
+    {% endcomment %}
+    {% comment %}Inject modal begin{% endcomment %}
+    <div class="modal" data-modal-container aria-label="modal window" data-trap-focus>
+      <div class="modal-inner" data-modal-inner>
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="{{ 'general.accessibility.close' | t }}"
+          data-modal-close
+        >
+          {% render 'icon-menu-close' %}
+        </button>
+        <div class="modal-content" data-modal-content></div>
+      </div>
+    </div>
+    
+    <div class="modal-1" data-modal-container-1 aria-label="modal window">
+      <div class="modal-inner" data-modal-inner>
+        <button
+          class="modal-close"
+          type="button"
+          aria-label="{{ 'general.accessibility.close' | t }}"
+          data-modal-1-close
+        >
+          {% render 'icon-menu-close' %}
+        </button>
+        <div class="modal-content" data-modal-content></div>
+      </div>
+    </div>
+    {% comment %}Inject modal end{% endcomment %}
+
+
+    <script
+      src="{{ 'vendors-main.bundle.js' | asset_url }}"
+    >
+    </script>
+
+    <script
+      src="{{ 'empire.js' | asset_url }}"
+      data-scripts
+      data-pxu-polyfills="{{ 'polyfills.min.js' | asset_url }}"
+    >
+    </script>
+  </body>
+</html>
