@@ -65,12 +65,12 @@
   var newform = document.querySelector(".form-field-input");
   newsbtn.addEventListener("click", function(e) {
     e.preventDefault();
-    var inputtype = newform.getAttribute("type");
-    if(inputtype === 'email' ){
+    if (newform.getAttribute('type') === 'email' && newform.value.trim() !== '') {
+      console.log("clicked");
+      // Perform further actions if the condition is met
+    } else {
       console.log("error");
-    }
-    else{
-    console.log("clicked")
+      // Handle the error condition
     }
   })
 </script>
