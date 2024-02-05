@@ -60,19 +60,21 @@
     {% endif %}
   {% endform %}
 </div>
-<script>
+<!-- <script>
   var newsbtn = document.querySelector(".newsletter-submit button")
   newsbtn.addEventListener("click", function(e) {
     e.preventDefault();
     console.log("clicked")
   })
-</script>
+</script> -->
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    var formnew = document.getElementById('form_id');
+    var form = document.getElementById('form_id');
     var successMessage = document.querySelector('.newsletter-success');
+    var submitButton = document.querySelector('.newsletter-submit button'); // Replace with the actual ID of your button
 
-    formnew.addEventListener('submit', function() {
+    submitButton.addEventListener('click', function(e) {
+      e.preventDefault();
       var formData = new FormData(form);
 
       fetch(form.action, {
@@ -97,4 +99,5 @@
     });
   });
 </script>
+
 
