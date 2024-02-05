@@ -3,7 +3,7 @@
     var newsbtn = document.querySelector('.newsletter-submit button');
     var newsForm = document.querySelector('.newsletter form');
 
-    newsForm.addEventListener('submit', async function(e) {
+    newsbtn.addEventListener('click', async function(e) {
       e.preventDefault(); // Prevent default button click behavior
 
       var formData = new FormData(newsForm); // Get form data
