@@ -1,12 +1,16 @@
 <script>
-var formbtn = document.querySelector(".newsletter-submit button");
-  formbtn.addEventListener("click", function(e){
-  e.preventDefault();
-    console.log("ll");
+  document.addEventListener('DOMContentLoaded', function() {
+    var formbtn = document.querySelector(".newsletter-submit button");
 
-});
-
-  
+    if (formbtn) {
+      formbtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        console.log("ll");
+      });
+    } else {
+      console.error('Button not found. Check the selector or HTML structure.');
+    }
+  });
 </script>
 
 
