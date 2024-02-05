@@ -61,10 +61,16 @@
   {% endform %}
 </div>
 <script>
-  var newsbtn = document.querySelector(".newsletter-submit button")
+  var newsbtn = document.querySelector(".newsletter-submit button");
+  var newform = document.querySelector(".form-field-input");
   newsbtn.addEventListener("click", function(e) {
     e.preventDefault();
+    if(newform.value < 0){
+      console.log("error");
+    }
+    else{
     console.log("clicked")
+    }
   })
 </script>
 
