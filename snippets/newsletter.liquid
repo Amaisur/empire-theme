@@ -1,34 +1,10 @@
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var newsbtn = document.querySelector('.newsletter-submit button');
-    var newsForm = document.querySelector('.newsletter form');
+var formbtn = document.querySelector(".newsletter-submit button").addEventListener("click",function(e){
+  e.preventDefault();
+  alert("submitted")
+})
 
-    newsbtn.addEventListener('click', async function(e) {
-      e.preventDefault(); // Prevent default button click behavior
-
-      var formData = new FormData(newsForm); // Get form data
-
-      try {
-        const response = await fetch(newsForm.action, {
-          method: 'POST',
-          body: formData
-        });
-
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const data = await response.json(); // Parse response as JSON
-        // Handle success response
-        console.log(data);
-        // Optionally, display a success message or perform other actions
-      } catch (error) {
-        // Handle errors
-        console.error('Fetch error:', error);
-        // Optionally, display an error message or perform other actions
-      }
-    });
-  });
+  
 </script>
 
 
