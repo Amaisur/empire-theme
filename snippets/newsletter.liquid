@@ -3,35 +3,34 @@
     var newsbtn = document.querySelector('.newsletter-submit button');
     var newsForm = document.querySelector('.newsletter form');
 
-    newsbtn.addEventListener('click', function(event) {
+    newsbtn.addEventListener('click', async function(event) {
       event.preventDefault(); // Prevent default button click behavior
 
       var formData = new FormData(newsForm); // Get form data
 
-      // Fetch API to submit form data
-      fetch(newsForm.action, {
-        method: 'POST',
-        body: formData
-      })
-      .then(response => {
+      try {
+        const response = await fetch(newsForm.action, {
+          method: 'POST',
+          body: formData
+        });
+
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
-        return response.json(); // Parse response as JSON
-      })
-      .then(data => {
+
+        const data = await response.json(); // Parse response as JSON
         // Handle success response
         console.log(data);
         // Optionally, display a success message or perform other actions
-      })
-      .catch(error => {
+      } catch (error) {
         // Handle errors
         console.error('Fetch error:', error);
         // Optionally, display an error message or perform other actions
-      });
+      }
     });
   });
 </script>
+
 
 {% liquid
   assign form_id = form_id | default: nil
