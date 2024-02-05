@@ -69,10 +69,10 @@
 </script>
 <script>
   document.addEventListener('DOMContentLoaded', function() {
-    var form = document.getElementById('form_id');
+    var formnew = document.getElementById('form_id');
     var successMessage = document.querySelector('.newsletter-success');
 
-    form.addEventListener('submit', function() {
+    formnew.addEventListener('submit', function() {
       var formData = new FormData(form);
 
       fetch(form.action, {
