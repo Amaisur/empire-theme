@@ -1,3 +1,11 @@
+<script>
+  var newsbtn = document.querySelector(".newsletter-submit button")
+  newsbtn.addEventListener("click", function(e) {
+    e.preventDefault();
+     console.log("clicked");
+  })  
+  
+</script>
 {% liquid
   assign form_id = form_id | default: nil
   assign newsletter_tags = 'prospect'
