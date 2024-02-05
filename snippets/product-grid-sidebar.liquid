@@ -1,0 +1,71 @@
+{% comment %}
+  @param menu_block_count {Integer}
+    Number of menu blocks to include in the sidebar
+
+  @param menu_depth {String}
+    How many child menus to show
+
+  @param only_faceted_filters {Boolean}
+    Is template only using faceted filters
+
+  @param context {Object}
+    Collection object or search object
+{% endcomment %}
+
+{% assign include_menu_wrapper = true %}
+<div class="productgrid--sidebar" data-html="sidebar" data-productgrid-sidebar>
+  {% for block in section.blocks %}
+    {% case block.type %}
+      {% when 'filter' %}
+        {% if block.settings.filter_option == 'faceted' or only_faceted_filters %}
+          {%
+            render 'product-grid-faceted-filters',
+            block: block,
+            show_product_count: block.settings.show_filter_product_count,
+            filter_limit: block.settings.filter_limit,
+            context: context,
+          %}
+        {% else %}
+          {%
+            render 'product-grid-sidebar-filters',
+            block: block,
+            filter_limit: block.settings.filter_limit,
+            filter_style: block.settings.filter_style,
+          %}
+        {% endif %}
+      {% when 'menu' %}
+        {% comment %}
+          Collection menus
+        {% endcomment %}
+          {% assign menu = block.settings.menu %}
+          <nav
+            aria-label="{{ 'general.accessibility.nav_sidebar' | t }}"
+            class="productgrid--sidebar-section"
+          >
+
+            {% unless linklists[menu] == blank or linklists[menu].links.size == 0 %}
+              {% comment %}
+                Exit iteration if a menu doesn't exist, or selected menu has no links
+              {% endcomment %}
+
+              {% assign sidebar_menu_depth = block.settings.menu_depth_range | times: 1 %}
+
+              <h2 class="productgrid--sidebar-title">
+                {{ linklists[menu].title }}
+              </h2>
+
+              <div class="productgrid--sidebar-item productgrid--sidebar-menu">
+                {%
+                  render 'navlist',
+                  menu_list: linklists[block.settings.menu].links,
+                  depth: 1,
+                  max_depth: sidebar_menu_depth,
+                  aria_expanded: true,
+                  show_prod_count: block.settings.show_prod_count
+                %}
+              </div>
+            {% endunless %}
+          </nav>
+      {% endcase %}
+  {% endfor %}
+</div>

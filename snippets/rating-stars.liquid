@@ -1,0 +1,34 @@
+{% comment %}
+  @param value {Float}
+    Rating value
+  @param scale_max {Float}
+    Maximum rating value in scale
+{% endcomment %}
+
+{% comment %}Normalize rating to a 0-5 scale and round to nearest 0.5{% endcomment %}
+{% liquid
+  assign max = scale_max | times: 1.0
+  assign scaled_value = value | times: 10 | divided_by: max | round | divided_by: 2.0
+%}
+
+<div
+  class="rating__star-wrapper"
+  style="--rating-value: {{ scaled_value }};"
+  role="img"
+  aria-label="{{ 'general.accessibility.star_reviews_info' | t: rating_value: value, rating_max: scale_max }}"
+>
+  {% for n in (1..5) %}
+    <svg
+      class="rating__star rating__star-{{ forloop.index }}"
+      aria-hidden="true"
+      focusable="false"
+      role="presentation"
+      xmlns="http://www.w3.org/2000/svg"
+      width="20"
+      height="20"
+      viewBox="3 3 17 17"
+    >
+      <use clip-path="url(#icon-star-clip)" xlink:href="#icon-star" />
+    </svg>
+  {% endfor %}
+</div>

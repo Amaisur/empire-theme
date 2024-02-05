@@ -1,0 +1,180 @@
+{% comment %}
+  @param product {Object}
+    The product object
+
+  @param heading {String}
+    The block heading
+
+  @param show_quantity {Boolean}
+    If true, show the quantity field
+
+  @param show_message {Boolean}
+    If true, show the message field
+
+  @param selected_variant {Object}
+    The selected variant
+
+  @param sku {String}
+    The variant SKU
+{% endcomment %}
+
+{% if heading != blank %}
+  {% form 'contact', class: 'product-request-form', id: 'product-request-form', data-product-request-form: '' %}
+    {% if form.posted_successfully? %}
+      {% assign posted = true %}
+    {% endif %}
+
+    <details class="product-request-form__disclosure" {% if posted %}open{% endif %}>
+      {% if posted %}
+        <div class="product-request-form__success-message">
+          {{- 'product.blocks.request_quote.success' | t -}}
+        </div>
+      {% elsif form.errors %}
+        <div class="product-request-form__error-message">
+          {{- form.errors | default_errors -}}
+        </div>
+      {% endif %}
+
+      <summary class="product-request-form__heading">
+        <span>{{- heading | escape -}}</span>
+        {% render 'icon-chevron-down-small' %}
+      </summary>
+
+      {% unless posted %}
+        <div
+          class="
+            product-request-form__field
+            product-request-form__field--columns
+          "
+        >
+          <div class="product-request-form__field-column">
+            <input
+              class="form-field-input"
+              id="product-request-form__name"
+              name="contact[name]"
+              type="text"
+              required
+            >
+
+            <label
+              class="form-field-title"
+              for="product-request-form__name"
+            >
+              {{- 'product.blocks.request_quote.name' | t -}}
+            </label>
+          </div>
+
+          <div class="product-request-form__field-column">
+            {% liquid
+              assign value = ''
+
+              if form.email
+                assign value = form.email
+              elsif customer
+                assign value = customer.email
+              endif
+            %}
+
+            <input
+              class="form-field-input"
+              id="product-request-form__email"
+              name="contact[email]"
+              type="email"
+              value="{{- value -}}"
+              required
+            >
+
+            <label
+              class="form-field-title"
+              for="product-request-form__email"
+            >
+              {{- 'product.blocks.request_quote.email' | t -}}
+            </label>
+          </div>
+        </div>
+
+        <input
+          name="contact[product]"
+          type="hidden"
+          value="{{- product.title | append: ' - ' | append: canonical_url | escape -}}"
+        >
+
+        {% unless product.has_only_default_variant %}
+          <input
+            name="contact[variant]"
+            type="hidden"
+            value="{{- selected_variant.title | escape -}}"
+            data-request-form-variant
+          >
+
+          <input
+            name="contact[id]"
+            type="hidden"
+            value="{{- selected_variant.id -}}"
+            data-request-form-variant-id
+          >
+        {% endunless %}
+
+        <input
+          {% if sku != blank %}
+            name="contact[sku]"
+          {% endif %}
+          type="hidden"
+          value="{{- sku -}}"
+          data-request-form-sku
+        >
+
+        {% if show_quantity %}
+          <div class="product-request-form__field">
+            <input
+              class="form-field-input"
+              id="product-request-form__quantity"
+              name="contact[quantity]"
+              type="number"
+              min="1"
+            >
+
+            <label
+              class="form-field-title"
+              for="product-request-form__quantity"
+            >
+              {{- 'product.blocks.request_quote.quantity' | t -}}
+            </label>
+          </div>
+        {% endif %}
+
+        {% if show_message %}
+          <div class="product-request-form__field">
+            <textarea
+              class="
+                form-field-input
+                form-field-textarea
+              "
+              id="product-request-form__message"
+              name="contact[message]"
+              data-product-request-form-message
+            >
+              {{- form.body -}}
+            </textarea>
+
+            <label
+              class="form-field-title"
+              for="product-request-form__message"
+            >
+              {{- 'product.blocks.request_quote.message' | t -}}
+            </label>
+          </div>
+        {% endif %}
+
+        <div class="product-request-form__action">
+          <button
+            class="button-primary"
+            type="submit"
+          >
+            {{- 'product.blocks.request_quote.submit' | t -}}
+          </button>
+        </div>
+      {% endunless %}
+    </details>
+  {% endform %}
+{% endif %}

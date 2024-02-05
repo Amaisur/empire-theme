@@ -1,0 +1,38 @@
+{% comment %}
+  @param title {String}
+    Title for section
+
+  @param results {Object}
+    List of results
+
+  @param results_type {String}
+    Type of search result to display
+{% endcomment %}
+
+{% capture sanitized_terms %}
+  {%
+    render 'search-sanitizer',
+    search_terms: search.terms
+  %}
+{% endcapture %}
+
+{% assign sanitized_terms = sanitized_terms | strip %}
+
+<div class="productgrid--footer-item">
+  <h2 class="productgrid--footer-title">
+    {{ title | t }}
+  </h2>
+
+  <ul class="productgrid--footer-results-list">
+    {% for item in results %}
+    {% if item.object_type != results_type %}
+      {% continue %}
+    {% endif %}
+    <li>
+      <a href="{{ item.url }}">
+        {{ item.title }}
+      </a>
+    </li>
+  {% endfor %}
+  </ul>
+</div>

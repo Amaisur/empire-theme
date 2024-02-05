@@ -1,0 +1,76 @@
+{% comment %}
+  Display variant options for a product
+
+  @param selected_variant
+{% endcomment %}
+
+{% capture id %}{% if variant_selection_id != blank %}{{ variant_selection_id }}-{% endif %}{{ section.id }}-data-variant-option-{{ option_index }}{% endcapture %}
+
+<div class="options-selection__select-wrapper">
+  <div
+    class="options-selection__select"
+  >
+    <label
+      class="options-selection__select-label"
+      for="{{ id }}"
+      data-variant-option-name="{{ option.name }}"
+      data-variant-option-choose-name="{{ 'product.variants.choose_option' | t: option: option.name }}"
+    >
+      {% if selected_variant %}
+        {{ option.name }}
+      {% else %}
+        {{ 'product.variants.choose_option' | t: option: option.name }}
+      {% endif %}
+    </label>
+    <div class="options-selection__input-select-wrapper">
+      <select
+        id="{{ id }}"
+        class="options-selection__input-select"
+        data-variant-option
+        data-variant-option-index="{{ option_index }}"
+        data-variant-option-chosen-value="{% if selected_variant %}{{ option.selected_value }}{% else %}false{% endif %}"
+      >
+        {% unless selected_variant %}
+          <option
+            value="not-selected"
+            disabled
+            selected
+            data-variant-option-value-wrapper
+            data-variant-option-value
+            data-variant-option-value-index="{{ option_index }}"
+          >
+            {{ 'product.variants.choose_option' | t: option: option.name }}
+          </option>
+        {% endunless %}
+        {% for value in option.values %}
+          <option
+            value="{{ value | escape }}"
+            {% if selected_variant and option.selected_value == value %}selected{% endif %}
+            data-variant-option-value-wrapper
+            data-variant-option-value
+            data-variant-option-value-index="{{ option_index }}"
+          >
+            {{ value }}
+          </option>
+        {% endfor %}
+      </select>
+      <div
+        class="options-selection__input-select-chevron"
+      >
+        <svg
+          aria-hidden="true"
+          focusable="false"
+          role="presentation"
+          width="8"
+          height="6"
+          viewBox="0 0 8 6"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <path d="M4 4.5L7 1.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"/>
+          <path d="M4 4.5L1 1.5" stroke="currentColor" stroke-width="1.25" stroke-linecap="square"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+</div>

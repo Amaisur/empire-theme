@@ -1,0 +1,166 @@
+{% comment %}
+  @param filter
+  @param filter_group_classes
+{% endcomment %}
+
+<div
+  class="
+    collection-filters__filter-group
+    {{ filter_group_classes }}
+  "
+  aria-label="{{ 'product_grid.filters.title_count.zero' | t }}"
+  data-filter-group
+>
+  <button
+    class="
+      collection-filters__filter-group-heading
+      productgrid--sidebar-button
+    "
+    data-filter-group-trigger
+    aria-expanded="false"
+  >
+    <div class="collection-filters__filter-title">
+      {{ filter.label }}
+    </div>
+
+    <div class="collection-filters__filter-icon-wrapper" tabindex="-1">
+      <span class="collection-filters__filter-icon">
+        {% render 'icon-chevron-down-small' %}
+      </span>
+    </div>
+  </button>
+
+  {% case filter.type %}
+    {% when 'boolean' or 'list' %}
+      <ul
+        class="
+          collection-filters__filter
+          collection-filters__filter-list
+        "
+        data-filter-group-list
+        data-accordion-content
+        >
+        {%- for value in filter.values -%}
+          <li
+            class="
+              collection-filters__filter-list-item
+              {% if value.active %}
+                collection-filters__filter-list-item--active
+              {% endif %}
+            "
+            {% if value.active -%}
+              data-filter-open="true"
+            {% else %}
+              data-filter-open="false"
+            {% endif %}
+          >
+            <a
+              class="collection-filters__filter-link"
+              data-name="{{ value.param_name }}"
+              data-value="{{ value.value }}"
+              data-handle="filter-{{ filter.label | escape | replace: ' ', '-'}}-{{ forloop.index0 }}"
+
+              {% if value.active -%}
+                {% assign animation_state = 'checked' %}
+                data-filter-active
+                data-url="{{ value.url_to_remove | url_encode }}"
+                href="{{ value.url_to_remove }}"
+              {% else %}
+                {% assign animation_state = 'unchecked' %}
+                data-url="{{ value.url_to_add | url_encode }}"
+                href="{{ value.url_to_add }}"
+              {%- endif %}
+              {% if value.count == 0 and value.active == false -%}
+                data-disabled
+              {%- endif %}
+              data-filter-input
+            >
+              <span class="filter-icon--checkbox" data-handle="filter-{{ filter.label | escape | replace: ' ', '-'}}-{{ forloop.index0 }}">
+                {%- render 'icon-checkmark-animated', animation_state: animation_state -%}
+              </span>
+              <span class="collection-filters__filter-list-item-text">
+                {{ value.label | escape }}
+                {% if show_product_count %}
+                  ({{ value.count }})
+                {% endif %}
+              </span>
+            </a>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {% when 'price_range' %}
+      <form
+        class="collection-filters__price-range-form"
+        data-accordion-content
+      >
+        <div
+          class="
+            collection-filters__filter
+            collection-filters__filter-range
+          "
+          data-filter-group-range
+        >
+          <div class="collection-filters__filter-range--from">
+            <span class="collection-filters__filter-range-currency">{{ cart.currency.symbol }}</span>
+            <input
+              class="
+                collection-filters__filter-range-input
+                form-field-input
+              "
+              name="{{ filter.min_value.param_name }}"
+              data-test="{{ filter.active_values }}"
+
+              id="filter-{{ filter.label }}-{{ forloop.index0 }}-from"
+              {% if filter.min_value.value -%}
+                value="{{ filter.min_value.value | money_without_currency | replace: ',', '' }}"
+              {%- endif %}
+              type="number"
+              placeholder="0"
+              min="0"
+              max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+              data-filter-range
+            >
+              <label
+                class="
+                  form-field-title
+                  collection-filters__filter-range-label
+                "
+                for="filter-{{ filter.label }}-{{ forloop.index0 }}-from"
+              >
+                  From
+              </label>
+          </div>
+          <div class="collection-filters__filter-range--to">
+            <span class="collection-filters__filter-range-currency">{{ cart.currency.symbol }}</span>
+            <input
+              class="
+                collection-filters__filter-range-input
+                form-field-input
+              "
+              name="{{ filter.max_value.param_name }}"
+              data-test="{{ filter.active_values }}"
+
+              id="filter-{{ filter.label }}-{{ forloop.index0 }}-to"
+              {% if filter.max_value.value -%}
+                value="{{ filter.max_value.value | money_without_currency | replace: ',', '' }}"
+              {%- endif %}
+              type="number"
+              placeholder="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+              min="0"
+              max="{{ filter.range_max | money_without_currency | replace: ',', '' }}"
+              data-filter-range
+            >
+              <label
+                class="
+                  form-field-title
+                  collection-filters__filter-range-label
+                "
+                for="filter-{{ filter.label }}-{{ forloop.index0 }}-to"
+              >
+                To
+              </label>
+          </div>
+        </div>
+      </form>
+  {% endcase %}
+</div>

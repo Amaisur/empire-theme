@@ -1,0 +1,94 @@
+{% comment %}
+  @param context {Object}
+    Collection object or search object
+{% endcomment %}
+
+{% assign filter_count = 0 %}
+
+{%- capture tag_icon -%}
+  <span class="filter-icon--remove">
+    {%
+      render 'icon-library',
+      id: 'icon-remove',
+    %}
+    <span class="visually-hidden">
+      {{ 'product_grid.filters.remove_filter' | t }}
+    </span>
+  </span>
+{%- endcapture -%}
+
+<ul class="active-filter-group">
+{%- for filter in context.filters -%}
+  {% if filter.type == 'price_range' and filter.min_value.value or filter.max_value.value %}
+    {% assign filter_count = filter_count | plus: 1 %}
+    {% assign range_min = filter.min_value.value | default: 0 %}
+    {% assign range_max = filter.max_value.value | default: filter.range_max %}
+
+    {%- capture tag_text -%}
+      <span class="active-filter-text">
+        {{ range_min | money }} - {{ range_max | money }}
+      </span>
+
+      {{- tag_icon -}}
+    {%- endcapture -%}
+
+      <li class="active-filter-group__item-wrapper">
+        <a
+          class="active-filter-group__item"
+          href="{{ filter.url_to_remove | replace: '%2C', ',' }}"
+          data-url="{{ filter.url_to_remove }}"
+          data-filter-input
+        >
+          {{ tag_text }}
+        </a>
+      </li>
+
+  {% else %}
+    {% if filter.active_values.size > 0 %}
+      {%- for value in filter.active_values -%}
+        {% assign filter_count = filter_count | plus: 1 %}
+        <li class="active-filter-group__item-wrapper">
+          {%- capture tag_text -%}
+            <span class="active-filter-text">
+              {% if filter.type == 'boolean' %}
+                {{ filter.label | escape }}:
+              {% endif %}
+
+              {{ value.label | escape }}
+            </span>
+
+            {{- tag_icon -}}
+          {%- endcapture -%}
+
+          <a
+            class="active-filter-group__item"
+            href="{{ value.url_to_remove | replace: '%2C', ',' }}"
+            data-url="{{ value.url_to_remove }}"
+            data-filter-input
+          >
+            {{ tag_text }}
+          </a>
+        </li>
+      {% endfor %}
+    {% endif %}
+  {% endif %}
+{% endfor %}
+
+{%- capture search_url -%}
+  {{ routes.search_url }}?q={{ search.terms }}
+{%- endcapture -%}
+
+{% if context == search %}
+  {% assign clear_url = search_url %}
+{% else %}
+  {% assign clear_url = collection.url %}
+{% endif %}
+
+{% if filter_count > 0 %}
+  <li class="active-filter-group--remove-all filter-item--grid-simple">
+    <a class="filter-item-clear-all" href="{{ clear_url }}">
+      {{ 'product_grid.filters.clear_all' | t }}
+    </a>
+  </li>
+{% endif %}
+</ul>

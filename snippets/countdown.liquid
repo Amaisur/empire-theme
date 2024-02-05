@@ -1,0 +1,109 @@
+{% comment %}
+  @param countdown_year {String}
+    The countdown timer year
+
+  @param countdown_month {String}
+    The countdown timer month
+
+  @param countdown_day {String}
+    The countdown timer day
+
+  @param countdown_hour {String}
+    The countdown timer hour
+
+  @param countdown_minute {String}
+    The countdown timer minute
+
+  @param countdown_timer_background {Boolean}
+    If true, show the countdown timer background
+
+  @param countdown_timer_complete {Boolean}
+    If true, hide the countdown timer when the timer expires
+
+  @param countdown_timer_message {String}
+    The message shown when the countdown timer has expired
+{% endcomment %}
+
+{%- capture datetime -%}
+  {{- countdown_year | append: '-' -}}
+  {{- countdown_month | append: '-' -}}
+  {{- countdown_day | append: 'T' -}}
+  {{- countdown_hour | append: ':' -}}
+  {{- countdown_minute | append: ':00.000' -}}
+{%- endcapture -%}
+
+{% liquid
+  assign timezone = datetime | date: "%z"
+  assign datetime = datetime | append: timezone
+%}
+
+<div
+  class="
+    countdown
+    {% if countdown_timer_background %}
+      countdown--has-background
+    {% endif %}
+    {% if countdown_timer_complete %}
+      countdown--hide-items
+    {% endif %}
+  "
+  data-countdown
+>
+  <div class="countdown__items">
+    <time
+      class="
+        countdown__item
+        countdown__item--datetime
+      "
+      datetime="{{ datetime }}"
+      data-time
+    >
+    </time>
+
+    <div
+      class="
+        countdown__item
+        countdown__item--days
+      "
+    >
+      <h2 class="countdown__item-heading" data-days></h2>
+      <span class="countdown__item-text">{{ 'sections.countdown-timer.days' | t }}</span>
+    </div>
+
+    <div
+      class="
+        countdown__item
+        countdown__item--hours
+      "
+    >
+      <h2 class="countdown__item-heading" data-hours></h2>
+      <span class="countdown__item-text">{{ 'sections.countdown-timer.hours' | t }}</span>
+    </div>
+
+    <div
+      class="
+        countdown__item
+        countdown__item--minutes
+      "
+    >
+      <h2 class="countdown__item-heading" data-minutes></h2>
+      <span class="countdown__item-text">{{ 'sections.countdown-timer.minutes' | t }}</span>
+    </div>
+
+    <div
+      class="
+        countdown__item
+        countdown__item--seconds
+      "
+    >
+      <h2 class="countdown__item-heading" data-seconds></h2>
+      <span class="countdown__item-text">{{ 'sections.countdown-timer.seconds' | t }}</span>
+    </div>
+  </div>
+
+  {% if countdown_timer_message != blank %}
+    <div class="countdown__message">
+      {{ countdown_timer_message }}
+    </div>
+  {% endif %}
+</div>

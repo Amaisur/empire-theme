@@ -1,0 +1,37 @@
+{% capture _ %}
+  {% comment %}
+    @param search_terms {string}
+        Original search terms
+  {% endcomment %}
+
+  {% assign sanitized_terms = search_terms %}
+
+  {% comment %}
+    Remove tag filtering or product_type filtering
+  {% endcomment %}
+  {% if sanitized_terms contains 'tag:' or sanitized_terms contains 'product_type:' %}
+    {%- liquid
+      # Everything after the first ' AND ', which is for the Shopify API (see SearchForm.js), is the user input.
+      # There is a possibility a user may use `AND` in their search term, so it should be kept as-is.
+      assign sanitized_terms = sanitized_terms | replace_first: ' AND ', ' _ANDtoremove_ '
+      assign sanitized_terms = sanitized_terms | split: ' _ANDtoremove_ ' | last
+    -%}
+  {% endif %}
+
+  {% comment %}
+    If search terms contains a space, replace all but last occurrence of `*`
+  {% endcomment %}
+  {% if sanitized_terms contains ' ' %}
+    {% assign sanitized_terms = sanitized_terms | split: '* ' | join: ' ' %}
+  {% endif %}
+
+  {% comment %}
+    Replace last `*` in search terms
+  {% endcomment %}
+  {% if sanitized_terms contains '*' %}
+    {% comment %}Reverse the string so that the last `*` is added by the theme{% endcomment %}
+    {% assign reversed_terms = sanitized_terms | split: '' | reverse | join: '' | remove_first: '*' %}
+    {% assign sanitized_terms = reversed_terms | split: '' | reverse | join: '' %}
+  {% endif %}
+{% endcapture %}
+{{ sanitized_terms }}

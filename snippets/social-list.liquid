@@ -1,0 +1,266 @@
+{% assign social_networks = 'behance|clubhouse|discord|dribbble|email|facebook|flickr|houzz|instagram|kickstarter|linkedin|medium|messenger|opensea|pinterest|reddit|rss|snapchat|spotify|tiktok|tumblr|twitch|twitter|vimeo|whatsapp|youtube' %}
+{% assign social_networks = social_networks | split: '|' %}
+
+{% assign has_social_icons = false %}
+
+{% for network in social_networks %}
+  {% assign setting = 'social_' | append: network %}
+  {% if settings[setting] != blank %}
+    {% assign has_social_icons = true %}
+    {% break %}
+  {% endif %}
+{% endfor %}
+
+
+{% if has_social_icons %}
+  {% if context == 'footer' %}
+    <h2 class="site-footer-block-title">
+      {{ 'footer.general.follow_us' | t }}
+    </h2>
+
+    <div class="site-footer-block-content">
+  {% endif %}
+
+  <div class="social-icons">
+    {%- if settings.social_behance != blank -%}
+      {%
+        render 'social-link',
+        id: 'behance',
+        title: 'Behance',
+        url: settings.social_behance
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_clubhouse != blank -%}
+      {%
+        render 'social-link',
+        id: 'clubhouse',
+        title: 'clubhouse',
+        url: settings.social_clubhouse
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_discord != blank -%}
+      {%
+        render 'social-link',
+        id: 'discord',
+        title: 'Discord',
+        url: settings.social_discord
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_dribbble != blank -%}
+      {%
+        render 'social-link',
+        id: 'dribbble',
+        title: 'Dribbble',
+        url: settings.social_dribbble
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_email != blank -%}
+      {% assign url = 'mailto:' | append: settings.social_email %}
+      {% assign email_title = 'general.general.email' | t %}
+      {%
+        render 'social-link',
+        id: 'email',
+        title: email_title,
+        url: url
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_facebook != blank -%}
+      {%
+        render 'social-link',
+        id: 'facebook',
+        title: 'Facebook',
+        url: settings.social_facebook
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_flickr != blank -%}
+      {%
+        render 'social-link',
+        id: 'flickr',
+        title: 'Flickr',
+        url: settings.social_flickr
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_houzz != blank -%}
+      {%
+        render 'social-link',
+        id: 'houzz',
+        title: 'Houzz',
+        url: settings.social_houzz
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_instagram != blank -%}
+      {%
+        render 'social-link',
+        id: 'instagram',
+        title: 'Instagram',
+        url: settings.social_instagram
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_kickstarter != blank -%}
+      {%
+        render 'social-link',
+        id: 'kickstarter',
+        title: 'Kickstarter',
+        url: settings.social_kickstarter
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_linkedin != blank -%}
+      {%
+        render 'social-link',
+        id: 'linkedin',
+        title: 'LinkedIn',
+        url: settings.social_linkedin
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_medium != blank -%}
+      {%
+        render 'social-link',
+        id: 'medium',
+        title: 'Medium',
+        url: settings.social_medium
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_messenger != blank -%}
+      {%
+        render 'social-link',
+        id: 'messenger',
+        title: 'Messenger',
+        url: settings.social_messenger
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_opensea != blank -%}
+      {%
+        render 'social-link',
+        id: 'opensea',
+        title: 'OpenSea',
+        url: settings.social_opensea
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_pinterest != blank -%}
+      {%
+        render 'social-link',
+        id: 'pinterest',
+        title: 'Pinterest',
+        url: settings.social_pinterest
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_reddit != blank -%}
+      {%
+        render 'social-link',
+        id: 'reddit',
+        title: 'Reddit',
+        url: settings.social_reddit
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_rss != blank -%}
+      {%
+        render 'social-link',
+        id: 'rss',
+        title: 'RSS',
+        url: settings.social_rss
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_snapchat != blank -%}
+      {%
+        render 'social-link',
+        id: 'snapchat',
+        title: 'Snapchat',
+        url: settings.social_snapchat
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_spotify != blank -%}
+      {%
+        render 'social-link',
+        id: 'spotify',
+        title: 'Spotify',
+        url: settings.social_spotify
+      %}
+    {%- endif -%}
+
+
+    {%- if settings.social_tiktok != blank -%}
+      {%
+        render 'social-link',
+        id: 'tiktok',
+        title: 'TikTok',
+        url: settings.social_tiktok
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_tumblr != blank -%}
+      {%
+        render 'social-link',
+        id: 'tumblr',
+        title: 'Tumblr'
+        url: settings.social_tumblr
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_twitch != blank -%}
+      {%
+        render 'social-link',
+        id: 'twitch',
+        title: 'Twitch',
+        url: settings.social_twitch
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_twitter != blank -%}
+      {%
+        render 'social-link',
+        id: 'twitter',
+        title: 'Twitter',
+        url: settings.social_twitter
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_vimeo != blank -%}
+      {%
+        render 'social-link',
+        id: 'vimeo',
+        title: 'Vimeo',
+        url: settings.social_vimeo
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_whatsapp != blank -%}
+      {%
+        render 'social-link',
+        id: 'whatsapp',
+        title: 'WhatsApp',
+        url: settings.social_whatsapp
+      %}
+    {%- endif -%}
+
+    {%- if settings.social_youtube != blank -%}
+      {%
+        render 'social-link',
+        id: 'youtube',
+        title: 'YouTube',
+        url: settings.social_youtube
+      %}
+    {%- endif -%}
+  </div>
+
+  {% if context == 'footer' %}
+    </div>
+  {% endif %}
+{% endif %}

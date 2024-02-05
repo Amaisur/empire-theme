@@ -1,0 +1,113 @@
+{% comment %}
+  @param attr {String}
+    Stock level attributes
+
+  @param inventory_display {String}
+    How the inventory quantity is displayed
+
+  @param inventory_transfer {Boolean}
+    If true, show the inventory transfer notice
+
+  @param variant {Object}
+    The product variant
+
+  @param verbose {Boolean}
+    If true, show additional text/elements
+{% endcomment %}
+
+{% liquid
+  assign stock_level = ''
+  assign inventory_quantity = variant.inventory_quantity
+
+  if variant.inventory_policy == 'continue'
+    if inventory_quantity <= 0 and variant.product.template_suffix contains 'pre-order'
+      assign stock_level = 'pre-order'
+    else
+      assign stock_level = 'continue-selling'
+    endif
+  elsif inventory_quantity > settings.low_stock_threshold
+    assign stock_level = 'high'
+  elsif inventory_quantity > 0 and inventory_quantity <= settings.low_stock_threshold
+    assign stock_level = 'low'
+  elsif inventory_quantity <= 0
+    assign stock_level = 'none'
+  endif
+
+  if inventory_display == 'hidden'
+    assign inventory_quantity = ''
+  elsif inventory_display == 'low_stock_only' and stock_level == 'high'
+    assign inventory_quantity = ''
+  elsif inventory_display == 'low_stock_threshold' and stock_level == 'high'
+    assign inventory_quantity = settings.low_stock_threshold
+  else
+    assign inventory_quantity = inventory_quantity
+  endif
+%}
+
+{% capture stock_badge_classes %}
+  product-stock-level
+  product-stock-level--{{ stock_level }}
+  {% if variant.incoming and inventory_transfer %}
+    product-stock-level--incoming
+  {% endif %}
+{% endcapture %}
+
+{% capture stock_badge_text %}
+  {% if stock_level == 'pre-order' %}
+    {{ 'product.status.pre_order' | t }}
+  {% elsif stock_level == 'continue-selling' %}
+    {{ 'product.status.continue_selling' | t }}
+  {% elsif stock_level == 'high' %}
+    {% if inventory_display == 'low_stock_threshold' %}
+      {% if verbose %}
+        {{ 'product.status.in_stock_threshold_verbose' | t: inventory_quantity: inventory_quantity }}
+      {% else %}
+        {{ 'product.status.in_stock_threshold' | t: inventory_quantity: inventory_quantity }}
+      {% endif %}
+    {% elsif verbose %}
+      {{ 'product.status.in_stock_verbose' | t: inventory_quantity: inventory_quantity }}
+    {% else %}
+      {% if inventory_display == 'hidden' %}
+        {{ 'product.status.in_stock_hidden' | t }}
+      {% else %}
+        {{ 'product.status.in_stock' | t: inventory_quantity: inventory_quantity }}
+      {% endif %}
+    {% endif %}
+  {% elsif stock_level == 'low' %}
+    {% if inventory_display == 'hidden' %}
+      {{ 'product.status.low_stock_hidden' | t }}
+    {% else %}
+      {{ 'product.status.low_stock' | t: inventory_quantity: inventory_quantity }}
+    {% endif %}
+  {% elsif stock_level == 'none' %}
+    {% if variant.incoming and inventory_transfer %}
+      {{ 'product.status.incoming_stock' | t: inventory_quantity: inventory_quantity }}
+    {% else %}
+      {{ 'product.status.no_stock' | t: inventory_quantity: inventory_quantity }}
+    {% endif %}
+  {% endif %}
+{% endcapture %}
+
+<div class="product-stock-level-wrapper" {{ attr }}>
+  {% if variant.inventory_management %}
+    <span class="{{ stock_badge_classes }}">
+      {% if verbose %}
+        <span class="product-stock-level__availability">
+          {{ 'product.status.availability' | t }}:
+        </span>
+      {% endif %}
+
+      <span class="product-stock-level__text">
+        {% if verbose and stock_level == 'high' %}
+          {%
+            render 'icon-library',
+            id: 'icon-checkmark-circle',
+          %}
+        {% endif %}
+        <div class="product-stock-level__badge-text">
+          {{ stock_badge_text }}
+        </div>
+      </span>
+    </span>
+  {% endif %}
+</div>

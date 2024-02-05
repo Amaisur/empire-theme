@@ -1,0 +1,103 @@
+{% liquid
+  assign age_gate_enabled = settings.enable_age_gate_site_wide
+  assign page_min_age = settings.age_gate_site_wide_min_age
+
+  if sections contains 'data-required-age'
+    assign age_gate_enabled = true
+    assign section_min_age = sections | split: 'data-required-age="||' | last | split: '||"' | first | times: 1
+
+    if page_min_age < section_min_age
+      assign page_min_age = section_min_age
+    endif
+  endif
+%}
+
+{% if age_gate_enabled %}
+  <div id="age-gate-{{ id }}" class="age-gate"{% if request.design_mode %} style="display: none;"{% endif %}>
+    <div class="age-gate__content">
+      <div class="age-gate__header">
+        {% if settings.show_age_gate_logo and shop.brand.logo != blank %}
+          <div class="age-gate__logo-wrapper">
+            {%
+              render 'rimg',
+              img: shop.brand.logo,
+              alt: shop.name,
+              size: '300x',
+              lazy: true,
+              canvas: true,
+              class: 'age-gate__logo'
+            %}
+          </div>
+        {% endif %}
+
+        {% if settings.age_gate_heading != blank %}
+          <p class="age-gate__heading">{{ settings.age_gate_heading }}</p>
+        {% endif %}
+
+        {% if settings.age_gate_description != blank %}
+          <p class="age-gate__description">{{ settings.age_gate_description }}</p>
+        {% endif %}
+      </div>
+      <form id="age-gate-{{ id }}-form" class="age-gate__form" data-age-gate data-required-age="{{ page_min_age }}">
+        <div class="age-gate__select-wrapper">
+          <label class="age-gate__select-label" for="age-gate-day">{{ 'age_gate.form.day' | t }}</label>
+          <select id="age-gate-{{ id }}-day" class="age-gate__select age-gate__day" name="day" required>
+            <option value="" selected>{{ 'age_gate.form.day' | t }}</option>
+            {% for i in (1..31) %}
+              <option value="{{ i }}">{{ i }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="age-gate__select-wrapper">
+          <label class="age-gate__select-label" for="age-gate-month">{{ 'age_gate.form.month' | t }}</label>
+          <select id="age-gate-{{ id }}-month" class="age-gate__select age-gate__month" name="month" required>
+            <option value="" selected>{{ 'age_gate.form.month' | t }}</option>
+            <option value="0">{{ 'age_gate.form.january' | t }}</option>
+            <option value="1">{{ 'age_gate.form.february' | t }}</option>
+            <option value="2">{{ 'age_gate.form.march' | t }}</option>
+            <option value="3">{{ 'age_gate.form.april' | t }}</option>
+            <option value="4">{{ 'age_gate.form.may' | t }}</option>
+            <option value="5">{{ 'age_gate.form.june' | t }}</option>
+            <option value="6">{{ 'age_gate.form.july' | t }}</option>
+            <option value="7">{{ 'age_gate.form.august' | t }}</option>
+            <option value="8">{{ 'age_gate.form.september' | t }}</option>
+            <option value="9">{{ 'age_gate.form.october' | t }}</option>
+            <option value="10">{{ 'age_gate.form.november' | t }}</option>
+            <option value="11">{{ 'age_gate.form.december' | t }}</option>
+          </select>
+        </div>
+
+        <div class="age-gate__select-wrapper">
+          <label class="age-gate__select-label" for="age-gate-year">{{ 'age_gate.form.year' | t }}</label>
+          <select id="age-gate-{{ id }}-year" class="age-gate__select age-gate__year" name="year" required>
+            <option value="" selected>{{ 'age_gate.form.year' | t }}</option>
+            {% assign year = "now" | date: "%Y" | times: 1 %}
+            {% assign startingYear = year | minus: 120 %}
+            {% for i in (startingYear..year) %}
+              {% assign j = year | minus: forloop.index0 %}
+              <option value="{{ j }}">{{ j }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <button class="age-gate__confirm_btn" type="submit">{{ 'age_gate.form.confirm' | t: shop: shop.name }}</button>
+        <p class="age-gate__error" data-age-gate-error style="display: none;">{{ 'age_gate.form.error' | t: age: page_min_age }}</p>
+      </form>
+    </div>
+  </div>
+
+  {% unless request.design_mode %}
+    <script>
+      const ageGateAge = sessionStorage.getItem('age-gate');
+
+      if (ageGateAge >= {{ page_min_age }}) {
+        const ageGateEl = document.getElementById('age-gate-{{ id }}');
+
+        if (ageGateEl) {
+          ageGateEl.style.display = 'none';
+        }
+      }
+    </script>
+  {% endunless %}
+{% endif %}
