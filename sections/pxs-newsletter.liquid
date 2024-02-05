@@ -1,7 +1,4 @@
 {% liquid
-  assign pxs_newsletter_form_success = 'form.success' | t
-  assign pxs_newsletter_form_placeholder = 'form.placeholder' | t
-  assign pxs_newsletter_form_submit = 'form.submit' | t
   assign pxs_newsletter_form_id = 'pxs-newsletter-' | append: section.id
   assign pxs_newsletter_email_id = 'pxs-newsletter-email-' | append: section.id
 %}
@@ -52,17 +49,38 @@
       {% endif %}
     </div>
 
-    {%
-      render 'newsletter',
-      pxs_newsletter_image: pxs_newsletter_image,
-      pxs_newsletter_form_success: pxs_newsletter_form_success,
-      pxs_newsletter_form_placeholder: pxs_newsletter_form_placeholder,
-      pxs_newsletter_form_submit: pxs_newsletter_form_submit,
-      pxs_newsletter_form_id: pxs_newsletter_form_id,
-      pxs_newsletter_email_id: pxs_newsletter_email_id,
-    %}
+    <div id="{{ pxs_newsletter_form_id }}">
+      <p class="newsletter-success" style="display: none;">
+        {{ section.settings.locales.en.form.success }}
+      </p>
+
+      {% render 'newsletter',
+        pxs_newsletter_image: section.settings.image,
+        pxs_newsletter_form_id: pxs_newsletter_form_id,
+        pxs_newsletter_email_id: pxs_newsletter_email_id
+      %}
+    </div>
+
   </div>
 </section>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('{{ pxs_newsletter_form_id }}');
+    var successMessage = document.querySelector('#{{ pxs_newsletter_form_id }} .newsletter-success');
+
+    if (form) {
+      form.addEventListener('submit', function(event) {
+        event.preventDefault();
+
+        // Perform AJAX submission or other asynchronous handling here
+
+        // On success, display the success message
+        successMessage.style.display = 'block';
+      });
+    }
+  });
+</script>
 
 {% schema %}
 {
