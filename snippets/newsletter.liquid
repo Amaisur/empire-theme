@@ -1,34 +1,38 @@
 <script>
-  var newsForm = document.querySelector('#form_id');
+  document.addEventListener('DOMContentLoaded', function() {
+    var newsbtn = document.querySelector('.newsletter-submit button');
+    var newsForm = document.querySelector('.newsletter form');
 
-  newsForm.addEventListener('submit', function(event) {
-    event.preventDefault(); // Prevent default form submission
+    newsbtn.addEventListener('click', function(event) {
+      event.preventDefault(); // Prevent default button click behavior
 
-    var formData = new FormData(newsForm); // Get form data
+      var formData = new FormData(newsForm); // Get form data
 
-    // Fetch API to submit form data
-    fetch(newsForm.action, {
-      method: 'POST',
-      body: formData
-    })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      return response.json(); // Parse response as JSON
-    })
-    .then(data => {
-      // Handle success response
-      console.log("submitted");
-      // Optionally, display a success message or perform other actions
-    })
-    .catch(error => {
-      // Handle errors
-      console.error('Fetch error:', error);
-      // Optionally, display an error message or perform other actions
+      // Fetch API to submit form data
+      fetch(newsForm.action, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.json(); // Parse response as JSON
+      })
+      .then(data => {
+        // Handle success response
+        console.log(data);
+        // Optionally, display a success message or perform other actions
+      })
+      .catch(error => {
+        // Handle errors
+        console.error('Fetch error:', error);
+        // Optionally, display an error message or perform other actions
+      });
     });
   });
 </script>
+
 {% liquid
   assign form_id = form_id | default: nil
   assign newsletter_tags = 'prospect'
@@ -92,14 +96,7 @@
     {% endif %}
   {% endform %}
 </div>
-<script>
-  var newsbtn = document.querySelector(".newsletter-submit button")
-  newsbtn.addEventListener("click", function(e) {
-    e.preventDefault();
-     console.log("clicked");
-  })  
-  
-</script>
+
 
 
 
