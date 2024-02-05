@@ -65,7 +65,7 @@
   var newform = document.querySelector(".form-field-input");
   newsbtn.addEventListener("click", function(e) {
     e.preventDefault();
-    if (newform.getAttribute('type') === 'email' && newform.value.trim() !== '') {
+    if ( newform.value.trim() !== '') {
       console.log("clicked");
       // Perform further actions if the condition is met
     } else {
