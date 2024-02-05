@@ -1,0 +1,257 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="dynamic-promo-mosaic"
+  data-section-data
+>
+  {
+    "compress_blocks": {{ section.settings.compress_blocks | json }}
+  }
+</script>
+
+<script type="application/pxs-animation-mapping+json">
+  {
+    "blocks": [".promo-block"],
+    "elements": [
+      ".promo-block--header",
+      ".promo-block--text",
+      ".promo-block--button"
+    ]
+  }
+</script>
+
+<section class="promo-mosaic--container">
+  {% if section.settings.title != blank %}
+    <h2 class="home-section--title">
+      {{ section.settings.title | escape }}
+    </h2>
+  {% endif %}
+
+  <div class="home-section--content promo-mosaic--height-{{ section.settings.section_height }}">
+    {% if section.blocks.size > 0 %}
+      <div
+        class="
+          promo-mosaic--inner
+          promo-mosaic--layout-{{ section.blocks.size }}
+          {% if section.settings.compress_blocks %}promo-mosaic--compressed{% endif %}
+          {% if section.settings.maintain_aspect_ratio %}
+          promo-mosaic--maintain-aspect-ratio
+          {% endif %}
+        "
+      >
+      {% for block_item in section.blocks %}
+        {%
+          render 'promo-block',
+          block: block_item,
+          text_alignment: section.settings.text_alignment,
+          compress_blocks: section.settings.compress_blocks,
+          maintain_aspect_ratio: section.settings.maintain_aspect_ratio,
+          index: forloop.index,
+        %}
+      {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+
+  {%
+    render 'promo-block-background',
+    blocks: section.blocks
+  %}
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.mosaic.name",
+  "class": "promo-mosaic--section",
+  "max_blocks": 5,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.mosaic.title.label",
+      "default": "Mosaic"
+    },
+    {
+      "id": "section_height",
+      "type": "select",
+      "label": "t:sections.mosaic.section_height.label",
+      "options": [
+        {
+          "value": "small",
+          "label": "t:sections.mosaic.section_height.option_1"
+        },
+        {
+          "value": "medium",
+          "label": "t:sections.mosaic.section_height.option_2"
+        },
+        {
+          "value": "large",
+          "label": "t:sections.mosaic.section_height.option_3"
+        }
+      ],
+      "default": "small"
+    },
+    {
+      "id": "text_alignment",
+      "type": "select",
+      "label": "t:sections.mosaic.text_alignment.label",
+      "options": [
+        {
+          "value": "top-left",
+          "label": "t:sections.mosaic.text_alignment.option_1"
+        },
+        {
+          "value": "top-center",
+          "label": "t:sections.mosaic.text_alignment.option_2"
+        },
+        {
+          "value": "top-right",
+          "label": "t:sections.mosaic.text_alignment.option_3"
+        },
+        {
+          "value": "center-left",
+          "label": "t:sections.mosaic.text_alignment.option_4"
+        },
+        {
+          "value": "center-center",
+          "label": "t:sections.mosaic.text_alignment.option_5"
+        },
+        {
+          "value": "center-right",
+          "label": "t:sections.mosaic.text_alignment.option_6"
+        },
+        {
+          "value": "bottom-left",
+          "label": "t:sections.mosaic.text_alignment.option_7"
+        },
+        {
+          "value": "bottom-center",
+          "label": "t:sections.mosaic.text_alignment.option_8"
+        },
+        {
+          "value": "bottom-right",
+          "label": "t:sections.mosaic.text_alignment.option_9"
+        }
+      ],
+      "default": "top-left"
+    },
+    {
+      "id": "maintain_aspect_ratio",
+      "type": "checkbox",
+      "label": "t:sections.mosaic.maintain_aspect_ratio.label",
+      "default": false
+    },
+    {
+      "type": "header",
+      "content": "t:sections.mosaic.header_1.content"
+    },
+    {
+      "id": "compress_blocks",
+      "type": "checkbox",
+      "label": "t:sections.mosaic.compress_blocks.label",
+      "default": false
+    }
+  ],
+  "blocks": [
+    {
+      "type": "promotion",
+      "name": "t:sections.mosaic.blocks.promotional_item.name",
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "t:sections.mosaic.blocks.promotional_item.image.label"
+        },
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.mosaic.blocks.promotional_item.title.label",
+          "default": "Mosaic"
+        },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "t:sections.mosaic.blocks.promotional_item.text.label",
+          "default": "Use this section to welcome customers to your store, say a bit about your brand, or share news."
+        },
+        {
+          "type": "color",
+          "id": "color",
+          "label": "t:sections.mosaic.blocks.promotional_item.color.label",
+          "default": "#4d4d4d"
+        },
+        {
+          "type": "url",
+          "id": "block_link",
+          "label": "t:sections.mosaic.blocks.promotional_item.block_link.label"
+        },
+        {
+          "type": "text",
+          "id": "button_text",
+          "label": "t:sections.mosaic.blocks.promotional_item.button_text.label"
+        },
+        {
+          "id": "button_style",
+          "type": "select",
+          "label": "t:sections.mosaic.blocks.promotional_item.button_style.label",
+          "options": [
+            {
+              "value": "primary",
+              "label": "t:sections.mosaic.blocks.promotional_item.button_style.option_1"
+            },
+            {
+              "value": "secondary",
+              "label": "t:sections.mosaic.blocks.promotional_item.button_style.option_2"
+            }
+          ],
+          "default": "primary"
+        },
+        {
+          "type": "header",
+          "content": "t:sections.mosaic.blocks.promotional_item.header_1.content"
+        },
+        {
+          "id": "show_overlay",
+          "type": "checkbox",
+          "label": "t:sections.mosaic.blocks.promotional_item.show_overlay.label"
+        },
+        {
+          "id": "background",
+          "type": "color",
+          "label": "t:sections.mosaic.blocks.promotional_item.background.label"
+        },
+        {
+          "id": "opacity",
+          "type": "range",
+          "label": "t:sections.mosaic.blocks.promotional_item.opacity.label",
+          "min": 1,
+          "max": 100,
+          "step": 1,
+          "unit": "%",
+          "default": 50
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.mosaic.presets.mosaic.name",
+      "category": "t:sections.mosaic.presets.mosaic.category",
+      "blocks": [
+        {
+          "type": "promotion"
+        },
+        {
+          "type": "promotion"
+        },
+        {
+          "type": "promotion"
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": ["*"]
+  }
+}
+{% endschema %}

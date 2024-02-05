@@ -1,0 +1,46 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="dynamic-html"
+></script>
+
+<section class="custom-html--container">
+  {% if section.settings.title != blank %}
+    <h2 class="home-section--title" >
+      {{ section.settings.title | escape }}
+    </h2>
+  {% endif %}
+  <div class="rte" data-rte>
+    {{ section.settings.custom_html }}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.custom_html.name",
+  "class": "html--section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.custom_html.title.label",
+      "default": "Custom HTML"
+    },
+    {
+      "type": "html",
+      "id": "custom_html",
+      "label": "t:sections.custom_html.custom_html.label",
+      "default": "<p>Write or paste your HTML code here</p>"
+    }
+  ],
+  "presets": [
+    {
+      "category": "t:sections.custom_html.presets.custom_html.category",
+      "name": "t:sections.custom_html.presets.custom_html.name"
+    }
+  ],
+  "disabled_on": {
+    "groups": ["*"]
+  }
+}
+{% endschema %}

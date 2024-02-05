@@ -1,0 +1,618 @@
+<script
+  type="application/json"
+  data-section-type="static-product-compare"
+  data-section-id="{{ section.id }}"
+  data-section-data
+>
+  {
+    "handle": {{ product.handle | json }},
+    "root_url": {{ routes.root_url | json }},
+    "filter_groups": {{ section.settings.filter_groups | json }},
+    "filter_count": {{ 'product_grid.filters.title_count' | t: count: '** count **' | json }},
+    "filter_count_zero": {{ 'product_grid.filters.title_count' | t: count: 0 | json }},
+    "breadcrumb": {{ 'product_compare.breadcrumb' | t: location: '** location **' | json }},
+    "context": {
+      "see_more": {{ 'general.general.see_more' | t | json }},
+      "see_less": {{ 'general.general.see_less' | t | json }}
+    }
+  }
+</script>
+
+<nav
+  class="breadcrumbs-container"
+  aria-label="{{ 'general.accessibility.nav_breadcrumbs' | t }}"
+>
+  <a class="product-compare__breadcrumb" data-compare-breadcrumb>
+    <span class="product-compare__breadcrumb-chevron" aria-hidden="true">
+      {% render 'icon-chevron-down-small' %}
+    </span>
+    <span data-compare-breadcrumb-text>{{ 'product_compare.breadcrumb_generic' | t }}</span>
+  </a>
+</nav>
+
+{% assign translated_block_types = 'description,vendor,rating,availability' | split: ','%}
+
+<template data-compare-sticky-bar-template>
+  <div class="product-compare-sticky-bar-wrapper" data-compare-sticky-bar>
+    <section class="product-compare-container product-compare-container--sticky-bar">
+      <div class="product-compare">
+        <div class="product-compare__sticky-bar-content" data-compare-sticky-bar-content>
+          <button class="product-compare__clear-all" data-compare-clear-all>
+            {{ 'product_compare.clear_all' | t }}
+          </button>
+        </div>
+        <div class="product-compare__table-container">
+          <div class="product-compare__table-wrapper" data-compare-table-scroll-wrapper>
+            <table class="product-compare__table" data-compare-table></table>
+            <div class="product-compare__scroll-stop" data-compare-scroll-stop></div>
+            <div class="product-compare__scroll-stop" data-compare-scroll-stop></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</template>
+
+<section class="product-compare-container">
+  <h1 class="product-compare__title">{{ 'general.title.product_compare' | t }}</h1>
+
+  <div class="product-compare">
+    <div class="product-compare__toolbar">
+      <button
+        class="utils-filter-button"
+        type="button"
+        aria-label="{{ 'product_grid.filters.title_count' | t: count: 0 }}"
+        data-compare-open-filter-modal-button
+      >
+        <span class="utils-filter-icon">
+          {% render 'icon-library', id: 'icon-filters' %}
+        </span>
+        <span class="utils-filter-text" data-compare-filter-text>
+          {{- 'product_grid.filters.title_count' | t: count: 0 -}}
+        </span>
+      </button>
+    </div>
+    <div class="product-compare__filters-wrapper" data-compare-filters-modal-target>
+      <form class="product-compare__filters" data-compare-filters>
+        <h2 class="product-compare__filters-heading">{{ 'product_grid.filters.title_count' | t: count: 0 }}</h2>
+        <div data-compare-mobile-active-filters-target style="display: none"></div>
+        {% assign end_of_group = false %}
+        {% assign group_heading = '' %}
+        {% assign group_list_content = '' %}
+
+        {% for block in section.blocks %}
+          {% assign next_block = section.blocks[forloop.index] %}
+          {% if next_block.type == 'heading' or forloop.last %}
+            {% assign end_of_group = true %}
+          {% endif %}
+
+          {% if block.type == 'heading' %}
+            {% capture group_heading %}
+              <button
+                class="
+                  collection-filters__filter-group-heading
+                  productgrid--sidebar-button
+                "
+                data-filter-group-trigger
+                aria-expanded="false"
+                type="button"
+              >
+                <div class="collection-filters__filter-title">
+                  {{ block.settings.text }}
+                </div>
+
+                <div class="collection-filters__filter-icon-wrapper" tabindex="-1">
+                  <span class="collection-filters__filter-icon">
+                    {% render 'icon-chevron-down-small' %}
+                  </span>
+                </div>
+              </button>
+            {% endcapture %}
+          {% else %}
+            {% assign filter_label = nil %}
+
+            {% if block.settings.title != blank %}
+              {% assign filter_label = block.settings.title %}
+            {% elsif translated_block_types contains block.type %}
+              {% assign filter_label = 'product_compare.' | append: block.type | t %}
+            {% endif %}
+
+            {% unless filter_label == blank %}
+              {% capture group_list_item %}
+                <li
+                  class="
+                    collection-filters__filter-list-item
+                  "
+                  data-filter-open="false"
+                >
+                  <input
+                    type="checkbox"
+                    id="{{ block.id }}"
+                    class="product-compare__filter-checkbox"
+                    name="compare-filter"
+                    value="{{ block.id }}"
+                    data-compare-filter-checkbox
+                  >
+                  <label
+                    class="
+                      collection-filters__filter-link
+                      product-compare__filter-label
+                    "
+                    for="{{ block.id }}"
+                    data-filter-input
+                  >
+                    <span class="filter-icon--checkbox" data-filter-checkbox-for="{{ block.id }}">
+                      {%- render 'icon-checkmark-animated', animation_state: 'unchecked' -%}
+                    </span>
+                    <span class="collection-filters__filter-list-item-text">
+                      {{ filter_label }}
+                    </span>
+                  </label>
+                </li>
+              {% endcapture %}
+
+              {% assign group_list_content = group_list_content | append: group_list_item %}
+            {% endunless %}
+          {% endif %}
+
+          {% if end_of_group %}
+            {% assign end_of_group = false %}
+            {% unless group_list_content == blank %}
+              <div
+                class="
+                  collection-filters__filter-group
+                  {% if group_heading == blank %}compare-filters__filter-group--no-heading{% endif %}
+                "
+                aria-label="{{ 'product_grid.filters.title_count.zero' | t }}"
+                data-filter-group
+              >
+                {{ group_heading }}
+                <ul
+                  class="
+                    collection-filters__filter
+                    collection-filters__filter-list
+                  "
+                  {% unless group_heading == blank %}
+                    aria-expanded="false"
+                    data-accordion-content
+                  {% endunless %}
+                >
+                  {{ group_list_content }}
+                </ul>
+              </div>
+            {% endunless %}
+            {% assign group_heading = '' %}
+            {% assign group_list_content = '' %}
+          {% endif %}
+        {% endfor %}
+      </form>
+    </div>
+    <div class="product-compare__table-container" data-html>
+      <div
+        class="
+          productgrid--filters
+          product-compare__active-filters
+        "
+        style="display: none;"
+        data-compare-active-filters-container
+      >
+        {%- capture tag_icon -%}
+          <span class="filter-icon--remove">
+            {%
+              render 'icon-library',
+              id: 'icon-remove',
+            %}
+            <span class="visually-hidden">
+              {{ 'product_grid.filters.remove_filter' | t }}
+            </span>
+          </span>
+        {%- endcapture -%}
+
+        {%- capture placeholder -%}
+          <span class="product-compare__table-cell-placeholder">
+            &mdash;
+          </span>
+        {%- endcapture -%}
+
+        <template data-compare-filter-remove-template>
+          <li class="active-filter-group__item-wrapper" data-product-compare-filter-remove>
+            <button
+              class="
+                product-compare__filters-active-item
+                active-filter-group__item
+              "
+              type="button"
+            >
+              <span class="active-filter-text" data-compare-filter-remove-text></span>
+              {{ tag_icon }}
+            </button>
+          </li>
+        </template>
+        <template data-compare-filter-clear-all-template>
+          <li class="active-filter-group--remove-all filter-item--grid-simple" data-product-compare-filter-remove>
+            <button class="filter-item-clear-all product-compare__filters-clear-all">
+              {{ 'product_grid.filters.clear_all' | t }}
+            </button>
+          </li>
+        </template>
+
+        <ul class="active-filter-group" data-compare-active-filters>
+        </ul>
+      </div>
+      <div class="product-compare__table-wrapper" data-compare-table-scroll-wrapper>
+        <table class="product-compare__table" data-compare-table>
+          <tr
+            class="product-compare__product-cards-row"
+            data-compare-row-id="{{ section.id }}"
+            data-compare-row-type="info"
+            data-compare-ignore-filter
+          >
+            <th
+              class="product-compare__product-card"
+              data-compare-cell
+              data-compare-product-card-cell
+            >
+              {%
+                render 'product-grid-item',
+                product: product,
+                product_compare: true,
+              %}
+              <button
+                class="product-compare__remove-product-button"
+                data-compare-remove="{{ product.handle }}"
+                aria-label="{{ 'product_compare.remove' | t }}"
+              >
+                {%
+                  render 'icon-library',
+                  id: 'icon-remove',
+                  icon_class: 'product-compare__remove-product-button-icon'
+                %}
+              </button>
+            </th>
+            <th
+              class="product-compare__product-card"
+              data-compare-cell
+              data-compare-cell-placeholder
+              data-compare-product-card-cell
+            >
+              <div class="product-compare__product-card-placeholder">
+                <a class="product-compare__placeholder-link" data-compare-placeholder-link>
+                  {{ 'product_compare.card_placeholder_text' | t }}
+                </a>
+              </div>
+            </th>
+          </tr>
+          {% for block in section.blocks %}
+            {% assign last_row_in_cell_group = false %}
+            {% assign next_block = section.blocks[forloop.index] %}
+            {% if next_block.type == 'heading' or forloop.last %}
+              {% assign last_row_in_cell_group = true %}
+            {% endif %}
+            <tr
+              class="product-compare__other-row"
+              data-compare-row-id="{{ block.id }}"
+              data-compare-row-type="{% if block.type == 'heading' %}heading{% else %}info{% endif %}"
+              {% unless translated_block_types contains block.type %}
+                {% if block.settings.title == blank %}
+                  data-compare-ignore-filter
+                {% endif %}
+              {% endunless %}
+            >
+              {% if block.type == 'heading' %}
+                <th scope="col" colspan="2" data-compare-heading>
+                  <h2 class="product-compare__heading">
+                    {{ block.settings.text }}
+                  </h2>
+                </th>
+                {% continue %}
+              {% endif %}
+              <td
+                class="
+                  product-compare__table-cell
+                  {% if last_row_in_cell_group %}product-compare__table-cell--last{% endif %}
+                "
+                data-compare-cell
+                {{ block.shopify_attributes }}
+              >
+                {% case block.type %}
+                  {% when 'dynamic_comparison' %}
+                    {% if block.settings.title != blank %}
+                      <h3 class="product-compare__table-cell-heading">
+                        {{ block.settings.title | escape }}
+                      </h3>
+                    {% endif %}
+
+                    {% if block.settings.text != blank %}
+                      <div class="product-compare__table-cell-text">
+                        {{ block.settings.text }}
+                      </div>
+                    {% else %}
+                      {{ placeholder }}
+                    {% endif %}
+
+                  {% when 'description' %}
+                    <h3 class="product-compare__table-cell-heading">
+                      {{ 'product_compare.description' | t }}
+                    </h3>
+
+                    {% if product.description != blank %}
+                      <div
+                        class="
+                          product-compare__table-cell-description-wrapper
+                          show-more__content-wrapper
+                        "
+                        data-show-more-content-wrapper
+                      >
+                        <div class="product-compare__table-cell-description rte" data-compare-description>
+                          {{ product.description }}
+                        </div>
+                        <div class="show-more__toggle-more-wrapper">
+                          <button class="show-more__toggle-more" data-show-more-toggle>
+                            {{ 'general.general.see_more' | t }}
+                          </button>
+                        </div>
+                      </div>
+                    {% else %}
+                      {{ placeholder }}
+                    {% endif %}
+
+                  {% when 'availability' %}
+                    <h3 class="product-compare__table-cell-heading">
+                      {{ 'product_compare.availability' | t }}
+                    </h3>
+
+                    {%
+                      render 'product-stock-level',
+                      inventory_display: block.settings.inventory_display,
+                      inventory_transfer: block.settings.inventory_transfer_notice,
+                      variant: product.selected_or_first_available_variant,
+                      verbose: false,
+                    %}
+
+                  {% when 'custom_liquid' %}
+                    {% if block.settings.title != blank %}
+                      <h3 class="product-compare__table-cell-heading">
+                        {{ block.settings.title | escape }}
+                      </h3>
+                    {% endif %}
+
+                    {% if block.settings.custom_liquid != blank %}
+                      <div class="product-compare__table-cell-custom-liquid">
+                        {{ block.settings.custom_liquid }}
+                      </div>
+                    {% else %}
+                      {{ placeholder }}
+                    {% endif %}
+
+                  {% when 'rating' %}
+                    <h3 class="product-compare__table-cell-heading">
+                      {{ 'product_compare.rating' | t }}
+                    </h3>
+
+                    {% if product.metafields.reviews.rating.value != blank %}
+                      <div class="product-compare__table-cell-rating">
+                        <div class="product__rating rating">
+                          {%
+                            render 'rating-stars',
+                            value: product.metafields.reviews.rating.value.rating,
+                            scale_max: product.metafields.reviews.rating.value.scale_max,
+                          %}
+
+                          <p class="rating__text">
+                            <span aria-hidden="true">
+                              {{ product.metafields.reviews.rating.value }} / {{ product.metafields.reviews.rating.value.scale_max }}
+                            </span>
+                          </p>
+
+                          <p class="rating__count">
+                            <span aria-hidden="true">
+                              {{ product.metafields.reviews.rating_count }}
+                              {% if product.metafields.reviews.rating_count > 1 %}
+                                {{ "general.accessibility.star_reviews_text" | t }}
+                              {% else %}
+                                {{ "general.accessibility.star_review_text" | t }}
+                              {% endif %}
+                            </span>
+                          </p>
+                        </div>
+                      </div>
+                    {% else %}
+                      {{ placeholder }}
+                    {% endif %}
+
+                  {% when 'vendor' %}
+                    {% if product.vendor != blank %}
+                      <h3 class="product-compare__table-cell-heading">
+                        {{ 'product_compare.vendor' | t }}
+                      </h3>
+
+                      <div class="product-compare__table-cell-vendor">
+                        {%- capture vendor_link -%}
+                          {{ product.vendor | link_to_vendor }}
+                        {%- endcapture -%}
+                        {{ 'product_compare.vendor_html' | t: vendor_link: vendor_link }}
+                      </div>
+                    {% endif %}
+
+                  {% when '@app' %}
+                    <div class="product-app">
+                      {% render block %}
+                    </div>
+                {% endcase %}
+              </td>
+              <td
+                class="
+                  product-compare__table-cell
+                  {% if last_row_in_cell_group %}product-compare__table-cell--last{% endif %}
+                "
+                data-compare-cell
+                data-compare-cell-placeholder
+              ></td>
+            </tr>
+          {% endfor %}
+        </table>
+        <div class="product-compare__scroll-stop" data-compare-scroll-stop></div>
+        <div class="product-compare__scroll-stop" data-compare-scroll-stop></div>
+      </div>
+      <div class="product-compare__no-products" data-compare-empty>
+        <p>{{ 'product_compare.no_products_selected' | t }}</p>
+        {%- if settings.continue_url_compare -%}
+          {% assign continue_url = routes.all_products_collection_url %}
+          {% if settings.continue_shopping_url != blank %}
+            {% assign continue_url = settings.continue_shopping_url %}
+          {% endif %}
+          <a class="button-primary product-compare__continue-shopping" href="{{ continue_url }}">
+            {% render 'icon-library', id: 'icon-cart' %}
+            {{ 'cart.general.continue_shopping' | t }}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% render 'quick-shop' %}
+
+{% schema %}
+{
+  "name": "t:sections.product_compare.name",
+  "class": "product-compare--section section--canonical",
+  "settings": [
+    {
+      "type": "select",
+      "id": "filter_groups",
+      "label": "t:sections.collection_pages.blocks.filters.filter_groups.label",
+      "options": [
+        {
+          "value": "expand_all",
+          "label": "t:sections.collection_pages.blocks.filters.filter_groups.option_1"
+        },
+        {
+          "value": "expand_first",
+          "label": "t:sections.collection_pages.blocks.filters.filter_groups.option_2"
+        },
+        {
+          "value": "collapse_all",
+          "label": "t:sections.collection_pages.blocks.filters.filter_groups.option_3"
+        }
+      ],
+      "default": "expand_first"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "@app"
+    },
+    {
+      "type": "custom_liquid",
+      "name": "t:sections.product.blocks.custom_liquid.name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.product_compare.blocks.custom_liquid.title.label",
+          "default": "Custom Liquid"
+        },
+        {
+          "type": "liquid",
+          "id": "custom_liquid",
+          "label": "t:sections.product.blocks.custom_liquid.custom_liquid.label",
+          "info": "t:sections.product.blocks.custom_liquid.custom_liquid.info"
+        }
+      ]
+    },
+    {
+      "type": "description",
+      "name": "t:sections.product.blocks.description.name",
+      "limit": 1,
+      "settings": []
+    },
+    {
+      "type": "heading",
+      "name": "t:sections.product_compare.blocks.heading.name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "t:sections.product_compare.blocks.heading.text.label",
+          "default": "Product information"
+        }
+      ]
+    },
+    {
+      "type": "availability",
+      "name": "t:sections.product.blocks.inventory_status.name",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "radio",
+          "id": "inventory_display",
+          "label": "t:sections.product.blocks.inventory_status.inventory_display.label",
+          "info": "t:sections.product.blocks.inventory_status.inventory_display.info",
+          "options": [
+            {
+              "value": "all_products",
+              "label": "t:sections.product.blocks.inventory_status.inventory_display.option_1"
+            },
+            {
+              "value": "low_stock_threshold",
+              "label": "t:sections.product.blocks.inventory_status.inventory_display.option_2"
+            },
+            {
+              "value": "low_stock_only",
+              "label": "t:sections.product.blocks.inventory_status.inventory_display.option_3"
+            },
+            {
+              "value": "hidden",
+              "label": "t:sections.product.blocks.inventory_status.inventory_display.option_4"
+            }
+          ],
+          "default": "hidden"
+        },
+        {
+          "type": "checkbox",
+          "id": "inventory_transfer_notice",
+          "label": "t:sections.product.blocks.inventory_status.inventory_transfer_notice.label",
+          "info": "t:sections.product.blocks.inventory_status.inventory_transfer_notice.info",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "rating",
+      "name": "t:sections.product.blocks.product_rating.name",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "paragraph",
+          "content": "t:sections.product.blocks.product_rating.paragraph_1.content"
+        }
+      ]
+    },
+    {
+      "type": "dynamic_comparison",
+      "name": "t:sections.product_compare.blocks.dynamic_comparison.name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "title",
+          "label": "t:sections.product_compare.blocks.dynamic_comparison.title.label",
+          "default": "Dynamic comparison"
+        },
+        {
+          "type": "richtext",
+          "id": "text",
+          "label": "t:sections.product_compare.blocks.dynamic_comparison.text.label",
+          "default": "<p>Use this text to share additional information about your product.</p>"
+        }
+      ]
+    },
+    {
+      "type": "vendor",
+      "name": "t:sections.product.blocks.vendor.name",
+      "limit": 1
+    }
+  ]
+}
+
+{% endschema %}

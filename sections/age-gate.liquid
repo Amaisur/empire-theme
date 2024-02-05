@@ -1,0 +1,45 @@
+{% liquid
+  capture _
+    echo settings.show_age_gate_logo
+  endcapture
+%}
+
+<script
+  type="application/json"
+  data-section-type="age-gate"
+  data-section-id="{{ section.id }}"
+  data-section-data
+  data-required-age="||{{ section.settings.min_age }}||"
+>
+  {% assign age_gate_id = template.directory | append: template.name | append: template.suffix %}
+  {
+    "id": {{ age_gate_id | json }},
+    "required_age": {{ section.settings.min_age | json }}
+  }
+</script>
+
+{% schema %}
+  {
+    "name": "t:sections.age_gate.name",
+    "class": "shopify-section__age-gate",
+    "settings": [
+      {
+        "type": "number",
+        "id": "min_age",
+        "label": "t:sections.age_gate.minimum_age.label",
+        "default": 18
+      }
+    ],
+    "presets": [
+      {
+        "category": "t:sections.age_gate.presets.category",
+        "name": "t:sections.age_gate.presets.name"
+      }
+    ],
+    "disabled_on": {
+      "groups": [
+        "*"
+      ]
+    }
+  }
+{% endschema %}

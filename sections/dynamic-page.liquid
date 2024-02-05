@@ -1,0 +1,117 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="dynamic-page"
+></script>
+
+<script type="application/pxs-animation-mapping+json">
+  {
+    "blocks": [".page__wrapper"],
+    "elements": []
+  }
+</script>
+
+<section
+  class="
+    page__container
+    page--{{ section.settings.width }}
+  "
+>
+  <div
+    class="page__wrapper"
+    {{ section.shopify_attributes }}
+  >
+      {% if section.settings.show_heading %}
+        <h2
+          class="
+            page__heading
+            page__heading--{{ section.settings.heading_size }}
+          "
+        >
+          {% if section.settings.page != blank %}
+            {{ pages[section.settings.page].title | escape }}
+          {% else %}
+            {{ 'onboarding.page.title' | t }}
+          {% endif %}
+        </h2>
+      {% endif %}
+
+      <div class="page__content rte" data-rte>
+        {% if section.settings.page != blank %}
+          {{ pages[section.settings.page].content }}
+        {% else %}
+          {{ 'page' | placeholder_svg_tag: 'placeholder--image' }}
+        {% endif %}
+      </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.page.name",
+  "class": "page--section",
+  "settings": [
+    {
+      "id": "width",
+      "type": "select",
+      "label": "t:sections.page.width.label",
+      "options": [
+        {
+          "value": "regular",
+          "label": "t:sections.page.width.option_1"
+        },
+        {
+          "value": "wide",
+          "label": "t:sections.page.width.option_2"
+        },
+        {
+          "value": "full-width",
+          "label": "t:sections.page.width.option_3"
+        }
+      ],
+      "default": "regular"
+    },
+    {
+      "type": "page",
+      "id": "page",
+      "label": "t:sections.page.page.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_heading",
+      "label": "t:sections.page.show_heading.label",
+      "default": true
+    },
+    {
+      "id": "heading_size",
+      "type": "select",
+      "label": "t:sections.page.heading_size.label",
+      "options": [
+        {
+          "value": "small",
+          "label": "t:sections.page.heading_size.option_1"
+        },
+        {
+          "value": "medium",
+          "label": "t:sections.page.heading_size.option_2"
+        },
+        {
+          "value": "large",
+          "label": "t:sections.page.heading_size.option_3"
+        }
+      ],
+      "default": "medium"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.page.presets.page.name",
+      "category": "t:sections.page.presets.page.category",
+      "settings": {}
+    }
+  ],
+  "disabled_on": {
+    "groups": ["*"]
+  }
+}
+{% endschema %}

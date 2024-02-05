@@ -1,0 +1,138 @@
+<script
+  type="application/json"
+  data-section-type="dynamic-video"
+  data-section-id="{{ section.id }}"
+  data-section-data>
+  {
+    "autoplay": {{ section.settings.autoplay | json }}
+  }
+</script>
+
+<div class="dynamic-video-wrapper">
+  {% if section.settings.title != blank %}
+    <h2 class="home-section--title">
+      {{ section.settings.title | escape }}
+    </h2>
+  {% endif %}
+
+  {% assign url = section.settings.url | default: 'https://www.youtube.com/watch?v=_9VUPq3SxOc' %}
+
+  <div class="dynamic-video">
+    {% assign overlay = nil %}
+
+    {% if section.settings.show_overlay %}
+      {% assign opacity = section.settings.opacity | times: 0.01 %}
+      {% assign overlay = section.settings.background | color_modify: 'alpha', opacity %}
+    {% endif %}
+
+    {%
+      render 'video',
+      cover: section.settings.cover,
+      aspect_ratio: section.settings.aspect_ratio,
+      overlay: overlay,
+      url: url
+      %}
+  {% if section.settings.show_caption %}
+    <div class="dynamic-video-caption rte">{{ section.settings.caption }}</div>
+  {% endif %}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.video.name",
+  "class": "section-video",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.video.title.label",
+      "default": "Video"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.video.header_1.content"
+    },
+    {
+      "type": "video_url",
+      "id": "url",
+      "label": "t:sections.video.url.label",
+      "accept": [
+        "youtube",
+        "vimeo"
+      ],
+      "default": "https://www.youtube.com/watch?v=_9VUPq3SxOc"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_caption",
+      "label": "t:sections.video.show_caption.label"
+    },
+    {
+      "type": "richtext",
+      "id": "caption",
+      "label": "t:sections.video.caption.label",
+      "default": "<p>A short description of the video.</p>"
+    },
+    {
+      "type": "checkbox",
+      "id": "autoplay",
+      "label": "t:sections.video.autoplay.label"
+    },
+    {
+      "type": "select",
+      "id": "aspect_ratio",
+      "label": "t:sections.video.aspect_ratio.label",
+      "options": [
+        {
+          "label": "t:sections.video.aspect_ratio.option_1",
+          "value": "16-9"
+        },
+        {
+          "label": "t:sections.video.aspect_ratio.option_2",
+          "value": "21-9"
+        }
+      ]
+    },
+    {
+      "type": "image_picker",
+      "id": "cover",
+      "label": "t:sections.video.cover.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.video.header_2.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_overlay",
+      "label": "t:sections.video.show_overlay.label"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "t:sections.video.background.label",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "opacity",
+      "label": "t:sections.video.opacity.label",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    }
+  ],
+  "presets": [
+    {
+      "category": "t:sections.video.presets.video.category",
+      "name": "t:sections.video.presets.video.name"
+    }
+  ],
+  "disabled_on": {
+    "groups": ["*"]
+  }
+}
+{% endschema %}

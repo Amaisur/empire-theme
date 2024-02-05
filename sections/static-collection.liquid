@@ -1,0 +1,673 @@
+{% assign filter_block = nil %}
+{% assign sidebar_blocks = false %}
+{% assign menu_block_count = 0 %}
+
+{% for block in section.blocks %}
+  {% if block.type == 'filter' %}
+    {% assign filter_block = block %}
+    {% assign sidebar_blocks = true %}
+  {% elsif block.type == 'menu' %}
+    {% assign sidebar_blocks = true %}
+    {% assign menu_block_count = menu_block_count | plus: 1 %}
+  {% endif %}
+{% endfor %}
+
+{% assign filter_type = 'tag' %}
+{% if filter_block and filter_block.settings.filter_option == 'faceted' %}
+  {% assign filter_type = 'faceted' %}
+{% endif %}
+
+{%- capture section_type -%}
+  {% if filter_type == 'faceted' %}
+    static-collection-faceted-filters
+  {% else %}
+    static-collection
+  {% endif %}
+{%- endcapture -%}
+
+{% assign current_tag_handles = '' %}
+
+{% for tag in current_tags %}
+  {% assign current_tag = tag | handle %}
+  {% assign current_tag_handles = current_tag_handles | append: current_tag %}
+  {% unless forloop.last %}
+    {% assign current_tag_handles = current_tag_handles | append: '|' %}
+  {% endunless %}
+{% endfor %}
+
+{% assign current_tag_array = current_tag_handles | split: '|' %}
+
+
+<script
+  type="application/json"
+  data-section-type="{{ section_type | strip }}"
+  data-section-id="{{ section.id }}"
+  data-section-data
+>
+  {
+    "show_filter_product_count": {{ filter_block.settings.show_filter_product_count | json }},
+    "product_count": {{ collection.products_count | json }},
+    "filter_type": {{ filter_type | json }},
+    "filter_groups": {{ filter_block.settings.filter_groups | json }},
+    "filter_style": {{ filter_block.settings.filter_style | json }},
+    "no_matched_products_text": {{ 'general.accessibility.no_matched_products' | t: tag: '*tag*' | json }},
+    "context": {
+      "see_more": {{ 'general.general.see_more' | t | json }},
+      "see_less": {{ 'general.general.see_less' | t | json }},
+      "grid_list": {{ section.settings.default_view | json }},
+      "collectionUrl": {{ collection.url | default: '/collections/all' | json }},
+      "current_tags": {{ current_tag_array | json }}
+    },
+    "enable_product_compare": {{ settings.enable_product_compare | json }}
+  }
+</script>
+
+
+{% assign show_sidebar = false %}
+{% assign show_filters = true %}
+{% assign show_filter_trigger = false %}
+
+{% style %}
+  #shopify-section-{{ section.id }} .subcollections-list__content {
+    grid-template-columns: repeat(7, minmax(auto, 1fr));
+  }
+  @media only screen and (max-width: 860px) {
+    #shopify-section-{{ section.id }} .subcollections-list__content {
+      grid-template-columns: repeat(5, minmax(auto, 1fr));
+    }
+  }
+  @media only screen and (max-width: 480px) {
+    #shopify-section-{{ section.id }} .subcollections-list__content {
+      grid-template-columns: repeat(3, minmax(auto, 1fr));
+    }
+  }
+{% endstyle %}
+
+{% if filter_block == nil or filter_block.settings.filter_option == 'tag' and collection.all_tags.size == 0 %}
+  {% assign show_filters = false %}
+{% endif %}
+
+{% if sidebar_blocks %}
+  {% comment %}
+    Sidebar toggle is used on mobile only, and will only show Filters
+  {% endcomment %}
+
+  {% if show_filters %}
+    {% assign show_filter_trigger = true %}
+  {% endif %}
+
+  {% if sidebar_blocks or show_filters %}
+    {% comment %}
+      Sidebar to show only if there are tags in the collection, or there are menus
+    {% endcomment %}
+    {% assign show_sidebar = true %}
+  {% endif %}
+{% endif %}
+
+{% assign paginate_by = section.settings.products_per_page_range %}
+
+{%- capture collection_classes -%}
+  {% if show_sidebar %}
+    layout--has-sidebar
+  {% else %}
+    layout--no-sidebar
+  {% endif %}
+
+  {% if section.settings.default_view == 'grid-view' %}
+    productgrid-gridview
+  {% else %}
+    productgrid-listview
+  {% endif %}
+{%- endcapture -%}
+
+{% render 'breadcrumbs' %}
+
+{% paginate collection.products by paginate_by %}
+  <div class="productgrid--outer {{ collection_classes | strip_newlines }}" data-productgrid-outer>
+    <div class="productgrid--masthead">
+
+      {% if section.settings.show_collection_image and collection.image %}
+        <figure class="collection--image">
+          {%
+            render 'rimg',
+            img: collection.image,
+            size: '1350x',
+            lazy: true,
+            canvas: true
+          %}
+        </figure>
+      {% endif %}
+
+      <h1 class="collection--title">
+        {{ collection.title }}
+      </h1>
+
+      {% if collection.description != blank %}
+        <div class="collection--description rte" data-collection-description>
+          {{ collection.description }}
+        </div>
+      {% endif %}
+
+      {% if section.settings.enable_subcollection and linklists[collection.handle].links.size > 0 %}
+        {%
+          render 'subcollections-collection',
+          type: 'block',
+          block: section,
+          layout_type: 'slideshow',
+        %}
+        <div class="subcollections-collection__border"></div>
+      {% endif %}
+    </div>
+    {% if show_sidebar %}
+      {%
+        render 'product-grid-sidebar',
+        menu_depth: section.settings.menu_depth_range,
+        context: collection
+      %}
+    {% endif %}
+
+    <div class="productgrid--wrapper">
+
+      {% if show_filter_trigger or section.settings.sort_by or section.settings.grid_list %}
+        {% capture utility_class %}
+          productgrid--utils
+
+          {% if show_filter_trigger or section.settings.sort_by or section.settings.grid_list %}
+            productgrid--utils--visible-mobile
+          {% endif %}
+
+          {% unless section.settings.sort_by or section.settings.grid_list %}
+            productgrid--utils--hidden-desktop
+          {% endunless %}
+        {% endcapture %}
+        <div class="productgrid--utils-sticky-intersection" data-utils-intersection-target></div>
+        <nav
+          class="
+            {{ utility_class | strip_newlines }}
+            productgrid--utils-container
+            productgrid--utils-sticky
+          "
+          aria-label="{{ 'general.accessibility.nav_collection_utilities' | t }}"
+          data-sticky-utils
+        >
+          {% if show_filter_trigger %}
+            {% liquid
+              assign filter_count = 0
+              if filter_block.settings.filter_option == 'faceted'
+                for filter in collection.filters
+                  if filter.type == 'price_range' and filter.min_value.value or filter.max_value.value
+                    assign filter_count = filter_count | plus: 1
+                  elsif filter.type == 'list'
+                    assign filter_count = filter_count | plus: filter.active_values.size
+                  endif
+                endfor
+              else
+                if current_tags.size > 0
+                  assign filter_count = current_tags.size
+                endif
+              endif
+            %}
+            <div class="productgrid--utils utils-filter">
+              <button
+                class="utils-filter-button"
+                type="button"
+                aria-label="{{ 'product_grid.filters.title_count' | t: count: filter_count }}"
+                data-productgrid-trigger-filters
+              >
+                <span class="utils-filter-icon">
+                  {% render 'icon-library', id: 'icon-filters' %}
+                </span>
+                <span class="utils-filter-text">
+                  {{- 'product_grid.filters.title_count' | t: count: filter_count -}}
+                </span>
+              </button>
+            </div>
+          {% endif %}
+
+          {%- if section.settings.sort_by -%}
+            {%-
+              render 'product-grid-sortby',
+              type: 'select',
+            -%}
+          {%- endif -%}
+
+          {% if section.settings.grid_list or settings.enable_product_compare %}
+            <div
+              class="
+                productgrid--utils
+                utils-view
+                {% if section.settings.grid_list == false %}
+                  utils-hide
+                {% endif %}
+              "
+            >
+              <div class="utils-view-container">
+                {% if settings.enable_product_compare %}
+                  <div class="utils-compare-toggle">
+                    <span class="utils-compare-toggle__label">
+                      {{ 'product_compare.compare' | t }}
+                    </span>
+
+                    <div class="utils-compare-toggle__container">
+                      <input
+                        class="
+                          utils-compare-toggle__checkbox
+                          visually-hidden
+                        "
+                        id="utils-compare-toggle__checkbox"
+                        aria-label="{{ 'product_compare.compare' | t }}"
+                        type="checkbox"
+                        data-compare-toggle
+                      >
+
+                      <label class="utils-compare-toggle__checkbox-label" for="utils-compare-toggle__checkbox"></label>
+
+                      {%
+                        render 'icon-library',
+                        id: 'icon-checkmark',
+                        icon_class: 'utils-compare-toggle__checkbox-icon',
+                      %}
+                    </div>
+                  </div>
+                {% endif %}
+
+                {% if section.settings.grid_list %}
+                  <div class="utils-viewtoggle">
+                    <span class="utils-viewtoggle-label">
+                      {{ 'product_grid.view_as.title' | t }}
+                    </span>
+
+                    <button
+                      class="utils-viewtoggle-button {% if section.settings.default_view == 'grid-view' %}active{% endif %}"
+                      data-collection-view="grid-view"
+                      aria-label="grid view"
+                    >
+                      {% render 'icon-library', id: 'icon-grid' %}
+                    </button>
+
+                    <button
+                      class="utils-viewtoggle-button {% if section.settings.default_view == 'list-view' %}active{% endif %}"
+                      data-collection-view="list-view"
+                      aria-label="list view"
+                    >
+                      {% render 'icon-library', id: 'icon-list' %}
+                    </button>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+          {%- endif -%}
+        </nav>
+      {% endif %}
+
+      {% if filter_block.settings.filter_option == 'faceted' %}
+
+        {% assign active_filters = false %}
+        {% for filter in collection.filters %}
+          {% if filter.active_values.size > 0 or filter.min_value.value or filter.max_value.value %}
+            {% assign active_filters = true %}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+
+        {% if active_filters == true %}
+          <div class="productgrid--filters">
+            {%-
+              render 'product-grid-filters-active',
+              context: collection,
+            %}
+          </div>
+        {% endif %}
+      {% else %}
+        {% if current_tags.size > 0 %}
+          <div class="productgrid--filters">
+            {%- render 'product-grid-tags-active' %}
+          </div>
+        {% endif %}
+      {% endif %}
+
+      {% if collection.products.size > 0 %}
+        <ul
+          class="
+            productgrid--items
+            products-per-row-{{- section.settings.products_per_row -}}
+          "
+          data-html="productgrid-items"
+          data-productgrid-items
+        >
+          {% for product in collection.products %}
+            {%
+              render 'product-grid-item',
+              product: product
+            %}
+          {% endfor %}
+        </ul>
+      {% else %}
+        <div class="productgrid--no-results">
+          <h2 class="productgrid--no-results-title">
+            {%- if collection.all_products_count == 0 -%}
+              {{ 'product_grid.no_results.empty' | t }}
+            {%- else -%}
+              {{ 'product_grid.no_results.tags_empty' | t }}
+            {%- endif -%}
+          </h2>
+
+          <a class="productgrid--no-results-button" href="{{ routes.all_products_collection_url }}">
+            {{ 'search.general.view_all_products' | t }}
+          </a>
+        </div>
+      {% endif %}
+
+      {%
+        render 'pagination', paginate: paginate,
+        grid_list: true
+      %}
+    </div>
+  </div>
+{% endpaginate %}
+
+{%- if section.settings.sort_by -%}
+  {%-
+    render 'product-grid-sortby',
+    type: 'modal',
+  -%}
+{%- endif -%}
+
+{% render 'quick-shop' %}
+
+{% schema %}
+{
+  "name": "t:sections.collection_pages.name",
+  "class": "collection--section section--canonical",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_collection_image",
+      "label": "t:sections.collection_pages.show_collection_image.label",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "products_per_page_range",
+      "label": "t:sections.collection_pages.products_per_page_range.label",
+      "min": 24,
+      "max": 48,
+      "step": 12,
+      "default": 24
+    },
+    {
+      "type": "select",
+      "id": "products_per_row",
+      "label": "t:sections.collection_pages.products_per_row.label",
+      "options": [
+        {
+          "label": "t:sections.collection_pages.products_per_row.option_1",
+          "value": "3"
+        },
+        {
+          "label": "t:sections.collection_pages.products_per_row.option_2",
+          "value": "4"
+        }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.collection_pages.header_1.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "sort_by",
+      "label": "t:sections.collection_pages.sort_by.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "grid_list",
+      "label": "t:sections.collection_pages.grid_list.label",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "default_view",
+      "label": "t:sections.collection_pages.default_view.label",
+      "options": [
+        {
+          "label": "t:sections.collection_pages.default_view.option_1",
+          "value": "grid-view"
+        },
+        {
+          "label": "t:sections.collection_pages.default_view.option_2",
+          "value": "list-view"
+        }
+      ],
+      "default": "grid-view"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.collection_pages.header_2.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_subcollection",
+      "label": "t:sections.collection_pages.enable_subcollection.label",
+      "default": false,
+      "info": "t:sections.collection_pages.enable_subcollection.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_product_count",
+      "label": "t:sections.collection_pages.show_product_count.label",
+      "default": false
+    },
+    {
+      "type": "select",
+      "id": "thumbnail_image",
+      "label": "t:sections.collection_pages.thumbnail_image.label",
+      "options": [
+        {
+          "value": "product-image",
+          "label": "t:sections.collection_pages.thumbnail_image.option_1"
+        },
+        {
+          "value": "collection-image",
+          "label": "t:sections.collection_pages.thumbnail_image.option_2"
+        }
+      ],
+      "default": "product-image"
+    },
+    {
+      "type": "select",
+      "id": "image_crop",
+      "label": "t:sections.collection_pages.image_crop.label",
+      "options": [
+        {
+          "label": "t:sections.collection_pages.image_crop.option_1",
+          "value": "original"
+        },
+        {
+          "label": "t:sections.collection_pages.image_crop.option_2",
+          "value": "square"
+        },
+        {
+          "label": "t:sections.collection_pages.image_crop.option_3",
+          "value": "circle"
+        },
+        {
+          "label": "t:sections.collection_pages.image_crop.option_4",
+          "value": "round"
+        }
+      ],
+      "default": "original"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "t:sections.collection_pages.blocks.menu.name",
+      "settings": [
+        {
+          "id": "menu",
+          "type": "link_list",
+          "label": "t:sections.collection_pages.blocks.menu.menu.label",
+          "info": "t:sections.collection_pages.blocks.menu.menu.info"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_prod_count",
+          "label": "t:sections.collection_pages.blocks.menu.show_prod_count.label",
+          "info": "t:sections.collection_pages.blocks.menu.show_prod_count.info",
+          "default": true
+        },
+        {
+          "type": "range",
+          "id": "menu_depth_range",
+          "label": "t:sections.collection_pages.blocks.menu.menu_depth_range.label",
+          "info": "t:sections.collection_pages.blocks.menu.menu_depth_range.info",
+          "min": 1,
+          "max": 3,
+          "step": 1,
+          "default": 1
+        }
+      ],
+      "limit": 10
+    },
+    {
+      "type": "filter",
+      "name": "t:sections.collection_pages.blocks.filters.name",
+      "settings": [
+        {
+          "type": "select",
+          "id": "filter_option",
+          "label": "t:sections.collection_pages.blocks.filters.filter_option.label",
+          "options": [
+            {
+              "value": "faceted",
+              "label": "t:sections.collection_pages.blocks.filters.filter_option.option_1"
+            },
+            {
+              "value": "tag",
+              "label": "t:sections.collection_pages.blocks.filters.filter_option.option_2"
+            }
+          ],
+          "default": "faceted"
+        },
+        {
+          "type": "select",
+          "id": "filter_groups",
+          "label": "t:sections.collection_pages.blocks.filters.filter_groups.label",
+          "options": [
+            {
+              "value": "expand_all",
+              "label": "t:sections.collection_pages.blocks.filters.filter_groups.option_1"
+            },
+            {
+              "value": "expand_first",
+              "label": "t:sections.collection_pages.blocks.filters.filter_groups.option_2"
+            },
+            {
+              "value": "collapse_all",
+              "label": "t:sections.collection_pages.blocks.filters.filter_groups.option_3"
+            }
+          ],
+          "default": "expand_first"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_filter_product_count",
+          "label": "t:sections.collection_pages.blocks.filters.show_filter_product_count.label",
+          "default": true
+        },
+        {
+          "type": "header",
+          "content": "t:sections.collection_pages.blocks.filters.header_1.content",
+          "info": "t:sections.collection_pages.blocks.filters.header_1.info"
+        },
+        {
+          "type": "select",
+          "id": "filter_style",
+          "label": "t:sections.collection_pages.blocks.filters.filter_style.label",
+          "options": [
+            {
+              "value": "tags",
+              "label": "t:sections.collection_pages.blocks.filters.filter_style.option_1"
+            },
+            {
+              "value": "groups",
+              "label": "t:sections.collection_pages.blocks.filters.filter_style.option_2"
+            }
+          ],
+          "default": "tags"
+        },
+        {
+          "id": "filter_limit",
+          "type": "select",
+          "label": "t:sections.collection_pages.blocks.filters.filter_limit.label",
+          "options": [
+            {
+              "value": "5",
+              "label": "t:sections.collection_pages.blocks.filters.filter_limit.option_1"
+            },
+            {
+              "value": "6",
+              "label": "t:sections.collection_pages.blocks.filters.filter_limit.option_2"
+            },
+            {
+              "value": "8",
+              "label": "t:sections.collection_pages.blocks.filters.filter_limit.option_3"
+            },
+            {
+              "value": "10",
+              "label": "t:sections.collection_pages.blocks.filters.filter_limit.option_4"
+            },
+            {
+              "value": "15",
+              "label": "t:sections.collection_pages.blocks.filters.filter_limit.option_5"
+            },
+            {
+              "value": "20",
+              "label": "t:sections.collection_pages.blocks.filters.filter_limit.option_6"
+            },
+            {
+              "value": "999",
+              "label": "t:sections.collection_pages.blocks.filters.filter_limit.option_7"
+            }
+          ],
+          "default": "999"
+        },
+        {
+          "type": "text",
+          "id": "grid_categories",
+          "label": "t:sections.collection_pages.blocks.filters.grid_categories.label",
+          "info": "t:sections.collection_pages.blocks.filters.grid_categories.info"
+        },
+        {
+          "type": "liquid",
+          "id": "custom_ordered_categories",
+          "label": "t:sections.collection_pages.blocks.filters.custom_ordered_categories.label",
+          "info": "t:sections.collection_pages.blocks.filters.custom_ordered_categories.info"
+        },
+        {
+          "type": "liquid",
+          "id": "custom_ordered_tags",
+          "label": "t:sections.collection_pages.blocks.filters.custom_ordered_tags.label",
+          "info": "t:sections.collection_pages.blocks.filters.custom_ordered_tags.info"
+        },
+        {
+          "type": "liquid",
+          "id": "excluded_tags",
+          "label": "t:sections.collection_pages.blocks.filters.excluded_tags.label",
+          "info": "t:sections.collection_pages.blocks.filters.excluded_tags.info"
+        },
+        {
+          "type": "liquid",
+          "id": "excluded_groups",
+          "label": "t:sections.collection_pages.blocks.filters.excluded_groups.label",
+          "info": "t:sections.collection_pages.blocks.filters.excluded_groups.info"
+        }
+      ],
+      "limit": 1
+    }
+  ]
+}
+{% endschema %}

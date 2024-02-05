@@ -1,0 +1,197 @@
+<script
+  type="application/json"
+  data-section-type="dynamic-search"
+  data-section-id="{{ section.id }}"
+  data-section-data>
+  {
+    "settings": {
+      "live_search": {
+        "enable": {{ section.settings.enable_live_search | json }},
+        "show_mobile_search_bar": true
+      }
+    }
+  }
+</script>
+
+{% assign show_overlay = section.settings.show-overlay %}
+{% assign overlay_color = section.settings.background %}
+{% assign overlay_opacity = section.settings.opacity | times: 0.01 %}
+
+{% assign overlay_alpha = overlay_color | color_extract: 'alpha' | round %}
+{% if overlay_alpha == 0 or overlay_opacity == 0 %}
+  {% assign show_overlay = false %}
+{% endif %}
+
+<section class="search-section">
+  <div
+    class="search-section-background"
+    {% if section.settings.image %}
+      {%
+        render 'rimg',
+        img: section.settings.image,
+        size: '1350x1350',
+        lazy: true,
+        background: true,
+        focal_point: section.settings.image.presentation.focal_point,
+      %}
+    {% endif %}
+  >
+    {% if section.settings.image %}
+      {%
+        render 'rimg',
+        img: section.settings.image,
+        size: '1350x1350',
+        lazy: true,
+        canvas: true,
+        focal_point: section.settings.image.presentation.focal_point,
+      %}
+    {% endif %}
+  </div>
+
+  {% if show_overlay %}
+    <div
+      class="search-section-overlay"
+      style="background-color: {{ overlay_color | color_modify: 'alpha', overlay_opacity }}"
+    ></div>
+  {% endif %}
+
+  <div
+    class="search-section-content"
+    {% if show_overlay %}
+      style="color: {{ section.settings.color }}"
+    {% endif %}
+  >
+    <div class="search-section-header">
+      {% if section.settings.title %}
+        <h2 class="search-section-heading">
+          {{ section.settings.title | escape }}
+        </h2>
+      {% endif %}
+
+      {% if section.settings.text %}
+        <p class="search-section-text">
+          {{ section.settings.text | escape }}
+        </p>
+      {% endif %}
+    </div>
+
+    {%
+      render 'live-search-form',
+      enable_images: section.settings.enable_live_search_images,
+      placeholder: section.settings.placeholder,
+      quick_links: nil,
+    %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.search.name",
+  "class": "search--section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.search.title.label",
+      "default": "Search"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "t:sections.search.text.label",
+      "default": "Use this section to help customers find the products they're looking for."
+    },
+    {
+      "type": "text",
+      "id": "placeholder",
+      "label": "t:sections.search.placeholder.label",
+      "default": "What are you looking for?"
+    },
+    {
+      "id": "filter_search_by",
+      "type": "select",
+      "label": "t:sections.search.filter_search_by.label",
+      "info": "t:sections.search.filter_search_by.info",
+      "options": [
+        {
+          "value": "disabled",
+          "label": "t:sections.search.filter_search_by.option_1"
+        },
+        {
+          "value": "product_type",
+          "label": "t:sections.search.filter_search_by.option_2"
+        },
+        {
+          "value": "tag",
+          "label": "t:sections.search.filter_search_by.option_3"
+        }
+      ],
+      "default": "disabled"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.search.header_1.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_live_search",
+      "label": "t:sections.search.enable_live_search.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_live_search_images",
+      "label": "t:sections.search.enable_live_search_images.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.search.header_2.content"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.search.image.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.search.header_3.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show-overlay",
+      "label": "t:sections.search.show-overlay.label",
+      "default": false
+    },
+    {
+      "type": "color",
+      "id": "color",
+      "label": "t:sections.search.color.label",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "t:sections.search.background.label",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "opacity",
+      "label": "t:sections.search.opacity.label",
+      "min": 1,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 50
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.search.presets.search.name",
+      "category": "t:sections.search.presets.search.category"
+    }
+  ],
+  "disabled_on": {
+    "groups": ["*"]
+  }
+}
+{% endschema %}

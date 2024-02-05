@@ -1,0 +1,374 @@
+{% assign filter_block = nil %}
+{% assign sidebar_blocks = false %}
+{% assign filter_type = 'faceted' %}
+
+{% for block in section.blocks %}
+  {% if block.type == 'filter' %}
+    {% assign filter_block = block %}
+    {% assign sidebar_blocks = true %}
+  {% endif %}
+{% endfor %}
+
+{%- capture section_type -%}
+  {% if filter_type == 'faceted' %}
+    static-search-faceted-filters
+  {% else %}
+    static-search
+  {% endif %}
+{%- endcapture -%}
+
+<script
+  type="application/json"
+  data-section-type="{{ section_type | strip }}"
+  data-section-id="{{ section.id }}"
+  data-section-data
+>
+  {
+    "show_filter_product_count": {{ filter_block.settings.show_filter_product_count | json }},
+    "filter_groups": {{ filter_block.settings.filter_groups | json }}
+  }
+</script>
+
+{% assign show_sidebar = false %}
+{% assign show_filters = true %}
+{% assign show_filter_trigger = false %}
+
+{% if filter_block == nil %}
+    {% assign show_filters = false %}
+{% endif %}
+
+{% if sidebar_blocks or show_filters %}
+  {% assign show_sidebar = true %}
+{% endif %}
+
+{% if show_filters %}
+  {% assign show_filter_trigger = true %}
+{% endif %}
+
+{% assign paginate_by = section.settings.results_per_page_range %}
+
+{% paginate search.results by paginate_by %}
+
+  {% comment %}
+    Calculate number of results by type.
+  {% endcomment %}
+  {% assign product_count = 0 %}
+  {% assign article_count = 0 %}
+  {% assign page_count = 0 %}
+
+  {% assign page_title = 'general.accessibility.search' | t %}
+  {% assign total_result_count = search.results.size %}
+  {% if total_result_count > 0 %}
+    {% capture sanitized_terms %}
+      {%
+        render 'search-sanitizer',
+        search_terms: search.terms
+      %}
+    {% endcapture %}
+
+    {% assign sanitized_terms = sanitized_terms | strip %}
+    {% assign page_title = 'general.accessibility.search_results' | t: terms: sanitized_terms %}
+  {% endif %}
+
+  {% for item in search.results %}
+    {% if item.object_type == 'product' %}
+      {% assign product_count = product_count | plus: 1 %}
+    {% endif %}
+
+    {% if item.object_type == 'article' %}
+      {% assign article_count = article_count | plus: 1 %}
+    {% endif %}
+
+    {% if item.object_type == 'page' %}
+      {% assign page_count = page_count | plus: 1 %}
+    {% endif %}
+  {% endfor %}
+
+  {% capture results %}
+    {{ 'search.general.results' | t: count: search.results_count }}
+  {% endcapture %}
+
+  {% comment %}
+    Calculate the number of result types.
+  {% endcomment %}
+  {% assign type_count = 0 %}
+  {% if product_count > 0 %}{% assign type_count = type_count | plus: 1 %}{% endif %}
+  {% if article_count > 0 %}{% assign type_count = type_count | plus: 1 %}{% endif %}
+  {% if page_count > 0 %}{% assign type_count = type_count | plus: 1 %}{% endif %}
+
+  {% assign search_category = blank %}
+  {% assign search_filter_string = blank %}
+  {%- if search.performed -%}
+    {% assign field_prefixes = 'product_type: tag:' | split: ' ' %}
+    {% for field_prefix in field_prefixes %}
+      {% if search.terms contains field_prefix %}
+        {%- comment -%}
+          Everything after the first ' AND ', which is for the Shopify API (see SearchForm.js), is the user input.
+          There is a possibility a user may use `AND` in their search term, so it should be kept as-is.
+        {%- endcomment -%}
+        {% assign search_term = search.terms | replace_first: ' AND ', ' _ANDtoremove_ ' %}
+        {% assign search_filter = search_term | split: ' _ANDtoremove_ ' | first | split: field_prefix | last %}
+        {% assign search_category = search_filter | remove: 'searchfilter_' %}
+        {% assign search_filter_string = field_prefix | append: search_filter %}
+        {% break %}
+      {% endif %}
+    {% endfor %}
+  {%- endif -%}
+
+  {%
+    render 'breadcrumbs',
+    search_category: search_category,
+    results: results,
+  %}
+
+  <div
+    class="
+      productgrid--outer
+      {% if show_sidebar and search.filters.size > 0 %}
+        layout--has-sidebar
+      {% else %}
+        layout--no-sidebar
+      {% endif %}
+    "
+  >
+    <div class="productgrid--wrapper">
+
+      {% assign active_filters = false %}
+        {% for filter in search.filters %}
+          {% if filter.active_values.size > 0 or filter.min_value.value or filter.max_value.value %}
+            {% assign active_filters = true %}
+            {% break %}
+          {% endif %}
+        {% endfor %}
+
+      <div class="productgrid--masthead filters-active--{{ active_filters }}">
+        <h1 class="visually-hidden">{{ page_title }}</h1>
+        {%
+          render 'page-search-form',
+          search_filter_string: search_filter_string,
+          sanitized_terms: sanitized_terms,
+        %}
+
+        {% if active_filters == true %}
+          <div class="productgrid--filters">
+            {%-
+              render 'product-grid-filters-active',
+              context: search
+            %}
+          </div>
+        {% endif %}
+
+        {% if show_filter_trigger %}
+          {% capture utility_class %}
+            productgrid--utils
+
+            {% if show_filter_trigger and search.filters.size > 0 %}
+              productgrid--utils--visible-mobile
+            {% endif %}
+
+            productgrid--utils--hidden-desktop
+          {% endcapture %}
+          <div class="productgrid--utils-sticky-intersection" data-utils-intersection-target></div>
+          <nav
+            class="
+              {{ utility_class | strip_newlines }}
+              productgrid--utils-container
+              productgrid--utils-sticky
+            "
+            aria-label="{{ 'general.accessibility.nav_collection_utilities' | t }}"
+            data-sticky-utils
+          >
+            {% if show_filter_trigger %}
+              {% liquid
+                assign filter_count = 0
+                for filter in search.filters
+                  if filter.type == 'price_range' and filter.min_value.value or filter.max_value.value
+                    assign filter_count = filter_count | plus: 1
+                  elsif filter.type == 'list'
+                    assign filter_count = filter_count | plus: filter.active_values.size
+                  endif
+                endfor
+              %}
+              <div class="productgrid--utils utils-filter">
+                <button
+                  class="utils-filter-button"
+                  type="button"
+                  aria-label="{{ 'product_grid.filters.title_count' | t: count: filter_count }}"
+                  data-productgrid-trigger-filters
+                >
+                  <span class="utils-filter-icon">
+                    {% render 'icon-library', id: 'icon-filters' %}
+                  </span>
+                  <span class="utils-filter-text">
+                    {{- 'product_grid.filters.title_count' | t: count: filter_count -}}
+                  </span>
+                </button>
+              </div>
+            {% endif %}
+          </nav>
+        {% endif %}
+      </div>
+
+      {% if show_sidebar and search.filters.size > 0 %}
+        {%
+          render 'product-grid-sidebar',
+          only_faceted_filters: true,
+          context: search
+        %}
+      {% endif %}
+
+      {% if product_count > 0 %}
+        <h2 class="visually-hidden">{{ 'general.accessibility.search_products' | t }}</h2>
+        <ul class="productgrid--items products-per-row-{{- section.settings.products_per_row -}}">
+            {% for item in search.results %}
+              {% if item.object_type != 'product' %}{% continue %}{% endif %}
+              {%
+                render 'product-grid-item',
+                product: item
+              %}
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="productgrid--no-results">
+            {% assign title = 'search.general.no_search_performed' | t %}
+
+            {% if search.performed %}
+              {% capture sanitized_terms %}
+                {%
+                  render 'search-sanitizer',
+                  search_terms: search.terms
+                %}
+              {% endcapture %}
+
+              {% assign sanitized_terms = sanitized_terms | strip %}
+
+              {%- if search_category != blank -%}
+                {%
+                  assign title = 'search.general.no_results_products_title_in_category'
+                  | t: terms: sanitized_terms, category: search_category
+                %}
+              {%- else -%}
+                {% assign title = 'search.general.no_results_title' | t: terms: sanitized_terms, count: search.results_count, results: results %}
+              {%- endif -%}
+
+              {% if paginate.current_page > 1 %}
+                {%- if search_category != blank -%}
+                  {%
+                    assign title = 'search.general.no_more_results_products_title_in_category'
+                    | t: terms: sanitized_terms, category: search_category
+                  %}
+                {%- else -%}
+                  {% assign title = 'search.general.no_more_results_products_title' | t: terms: sanitized_terms %}
+                {%- endif -%}
+              {% endif %}
+            {% endif %}
+
+            <h2 class="productgrid--no-results-title">
+              {{ title }}
+            </h2>
+
+            {% if search.performed %}
+              <a class="productgrid--no-results-button" href="{{ routes.all_products_collection_url }}">
+                {{ 'search.general.view_all_products' | t }}
+              </a>
+            {% endif %}
+          </div>
+        {% endif %}
+      </div>
+
+      {%- if search.performed and search_category == blank and article_count > 0 or page_count > 0 -%}
+        <div class="productgrid--footer">
+          {%- if article_count > 0 -%}
+            {%
+              render 'results-search-content',
+              title: 'search.general.posts_title',
+              results: search.results,
+              results_type: 'article',
+            %}
+          {%- endif -%}
+
+          {%- if page_count > 0 -%}
+            {%
+              render 'results-search-content',
+              title: 'search.general.pages_title',
+              results: search.results,
+              results_type: 'page',
+            %}
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {% render 'pagination', paginate: paginate %}
+    </div>
+    {% render 'quick-shop' %}
+  </div>
+{% endpaginate %}
+
+{% schema %}
+{
+  "name": "t:sections.search_results.name",
+  "class": "search--section section--canonical",
+  "settings": [
+    {
+      "type": "range",
+      "id": "results_per_page_range",
+      "label": "t:sections.search_results.results_per_page_range.label",
+      "min": 24,
+      "max": 48,
+      "step": 12,
+      "default": 24
+    },
+    {
+      "type": "select",
+      "id": "products_per_row",
+      "label": "t:sections.search_results.products_per_row.label",
+      "options": [
+        {
+          "label": "t:sections.search_results.products_per_row.option_1",
+          "value": "3"
+        },
+        {
+          "label": "t:sections.search_results.products_per_row.option_2",
+          "value": "4"
+        }
+      ],
+      "default": "4"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "filter",
+      "name": "t:sections.search_results.blocks.filters.name",
+      "settings": [
+        {
+          "type": "select",
+          "id": "filter_groups",
+          "label": "t:sections.search_results.blocks.filters.filter_groups.label",
+          "options": [
+            {
+              "value": "expand_all",
+              "label": "t:sections.search_results.blocks.filters.filter_groups.option_1"
+            },
+            {
+              "value": "expand_first",
+              "label": "t:sections.search_results.blocks.filters.filter_groups.option_2"
+            },
+            {
+              "value": "collapse_all",
+              "label": "t:sections.search_results.blocks.filters.filter_groups.option_3"
+            }
+          ],
+          "default": "expand_first"
+        },
+        {
+          "type": "checkbox",
+          "id": "show_filter_product_count",
+          "label": "t:sections.search_results.blocks.filters.show_filter_product_count.label",
+          "default": true
+        }
+      ],
+      "limit": 1
+    }
+  ]
+}
+{% endschema %}

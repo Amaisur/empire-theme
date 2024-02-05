@@ -1,0 +1,292 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="static-subcollections-featured-collection"
+  data-section-data
+>
+  {
+    "context": {
+      "see_more": {{ 'general.general.see_more' | t | json }},
+      "see_less": {{ 'general.general.see_less' | t | json }}
+    }
+  }
+</script>
+
+<script type="application/pxs-animation-mapping+json">
+  {
+    "blocks": [
+      ".featured-collection__title-card"
+    ],
+    "elements": [
+      ".featured-collection__title-card-pre-heading",
+      ".featured-collection__title-card-heading",
+      ".featured-collection__title-card-button"
+    ]
+  }
+</script>
+
+{% assign subcollection_links = linklists[collection.handle].links | where: 'type', 'collection_link' %}
+
+{% if section.settings.shop_all_card_enable %}
+  {% assign title_card_source = 'simple' %}
+  {% style %}
+    #shopify-section-{{ section.id }} .featured-collection__title-card {
+      color: {{ section.settings.shop_all_card_text_color }};
+    }
+
+    #shopify-section-{{ section.id }} .featured-collection__title-card-outer::before {
+      background-color: {{ section.settings.shop_all_card_background_color }};
+    }
+  {% endstyle %}
+{% endif %}
+
+{% if section.settings.show_breadcrumbs %}
+  {% render 'breadcrumbs' %}
+{% endif %}
+
+<div class="subcollections-featured-collection__header">
+  <h1 class="subcollections-featured-collection__title">
+  {{ collection.title }}
+  </h1>
+
+  {% if section.settings.show_collection_description %}
+    <div class="subcollections-featured-collection__description rte">
+      {{ collection.description }}
+    </div>
+  {% endif %}
+
+  {% assign banner_element = 'div' %}
+  {% if section.settings.show_subcollection_menu %}
+    {% assign banner_element = 'nav' %}
+  {% endif %}
+
+  {% assign items_per_column = 7.0 %}
+
+  <{{ banner_element }}
+    class="
+      {% if section.settings.show_collection_image and collection.image %}
+        subcollections-featured-collection__banner
+        subcollections-featured-collection__banner--image-enabled
+      {% endif %}
+      {% if section.settings.show_subcollection_menu %}
+        subcollections-featured-collection__banner--menu-enabled
+      {% endif %}
+    "
+    {% if section.settings.show_subcollection_menu %}
+      {% assign column_count = subcollection_links.size | divided_by: items_per_column | ceil | at_most: 3 %}
+      style="--subcollection-menu-column-count: {{ column_count }};"
+    {% endif %}
+  >
+    {% if section.settings.show_collection_image and collection.image %}
+      <div class="subcollections-featured-collection__banner-image-wrapper">
+        {%
+          render 'rimg',
+          img: collection.image,
+          size: '1350x',
+          lazy: true,
+          canvas: true,
+          class: 'subcollections-featured-collection__banner-image',
+        %}
+      </div>
+    {% endif %}
+    {% if section.settings.show_subcollection_menu %}
+      <div
+        class="
+          subcollections-featured-collection__subcollection-menu-wrapper
+          {% if subcollection_links.size > items_per_column %}
+            subcollections-featured-collection__subcollection-menu-wrapper--more-than-1-column
+          {% endif %}
+          {% if column_count > 2 %}
+            subcollections-featured-collection__subcollection-menu-wrapper--more-than-2-columns
+          {% endif %}
+          show-more__content-wrapper
+        "
+        data-show-more-content-wrapper
+      >
+        <ul class="subcollections-featured-collection__subcollection-menu">
+          {% for subcollection_link in subcollection_links %}
+            <li>
+              <a
+                href="{{ subcollection_link.url }}"
+                class="
+                  subcollections-featured-collection__subcollection-menu-link
+                  {% if forloop.last %}
+                    subcollections-featured-collection__subcollection-menu-link--last
+                  {% endif %}
+                "
+              >
+                {{ subcollection_link.title }}
+              </a>
+            </li>
+          {% endfor %}
+        </ul>
+        {% if subcollection_links.size > items_per_column %}
+          <div class="show-more__toggle-more-wrapper">
+            <button class="show-more__toggle-more" data-show-more-toggle>
+              {{ 'general.general.see_more' | t }}
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    {% endif %}
+  </{{ banner_element }}>
+</div>
+
+{% if linklists[collection.handle].links.size > 0 %}
+  {% for subcollection_link in subcollection_links %}
+    {% assign subcollection = subcollection_link.object %}
+    {% capture title %}
+      <div class="subcollections-featured-collection__subcollection-header">
+        <h3 class="subcollections-featured-collection__subcollection-title">
+          {{ subcollection.title }}
+        </h3>
+        {% unless section.settings.cta_label == blank %}
+          <a class="subcollections-featured-collection__subcollection-cta" href="{{ subcollection.url }}">
+            {{ section.settings.cta_label }}
+            {% render 'icon-library', id: 'icon-signpost-arrow' %}
+          </a>
+        {% endunless %}
+      </div>
+    {% endcapture %}
+
+    {% assign item_count = section.settings.product_count | at_most: subcollection.products_count %}
+    {% if section.settings.shop_all_card_enable %}
+      {% assign item_count = item_count | plus: 1 %}
+    {% endif %}
+
+    {%
+      render 'featured-collection',
+      selected_collection: subcollection,
+      section: section,
+      item_count: item_count,
+      title_card_source: title_card_source,
+      title: title,
+      disable_cta_button: true,
+    %}
+  {% endfor %}
+  {% render 'quick-shop' %}
+{% else %}
+    {% capture title %}
+      <div class="subcollections-featured-collection__subcollection-header">
+        <h3 class="subcollections-featured-collection__subcollection-title">
+          {{ 'onboarding.featured_collection.title' | t }}
+        </h3>
+      </div>
+    {% endcapture %}
+
+
+    {% assign item_count = section.settings.product_count %}
+    {% if section.settings.shop_all_card_enable %}
+      {% assign item_count = item_count | plus: 1 %}
+    {% endif %}
+
+    {%
+      render 'featured-collection',
+      selected_collection: nil,
+      section: section,
+      item_count: item_count,
+      title_card_source: title_card_source,
+      title: title,
+      disable_cta_button: true,
+    %}
+{% endif %}
+
+{% schema %}
+{
+  "name": "t:sections.subcollections.name",
+  "class": "subcollections-featured-collection--section",
+  "settings": [
+    {
+      "type": "paragraph",
+      "content": "t:sections.subcollections.paragraph_1.content"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.subcollections.header_1.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_breadcrumbs",
+      "label": "t:sections.subcollections.show_breadcrumbs.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_description",
+      "label": "t:sections.subcollections.show_collection_description.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_collection_image",
+      "label": "t:sections.subcollections.show_collection_image.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_subcollection_menu",
+      "label": "t:sections.subcollections.show_subcollection_menu.label",
+      "info": "t:sections.subcollections.show_subcollection_menu.info",
+      "default": true
+    },
+    {
+      "type": "header",
+      "content": "t:sections.subcollections.header_2.content"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:sections.subcollections.layout.label",
+      "options": [
+        {
+          "value": "grid",
+          "label": "t:sections.subcollections.layout.option_1"
+        },
+        {
+          "value": "slideshow",
+          "label": "t:sections.subcollections.layout.option_2"
+        }
+      ],
+      "default": "slideshow"
+    },
+    {
+      "type": "range",
+      "id": "product_count",
+      "min": 1,
+      "max": 10,
+      "step": 1,
+      "label": "t:sections.subcollections.product_count.label",
+      "default": 4
+    },
+    {
+      "type": "text",
+      "id": "cta_label",
+      "label": "t:sections.subcollections.cta_label.label",
+      "default": "Shop all"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.subcollections.header_3.content",
+      "info": "t:sections.subcollections.header_3.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "shop_all_card_enable",
+      "label": "t:sections.subcollections.shop_all_card_enable.label",
+      "default": true
+    },
+    {
+      "type": "color",
+      "id": "shop_all_card_text_color",
+      "label": "t:sections.subcollections.shop_all_card_text_color.label",
+      "default": "#ffffff"
+    },
+    {
+      "type": "color",
+      "id": "shop_all_card_background_color",
+      "label": "t:sections.subcollections.shop_all_card_background_color.label",
+      "default": "#047084"
+    }
+  ]
+}
+{% endschema %}

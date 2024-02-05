@@ -1,0 +1,144 @@
+{% liquid
+  assign pxs_newsletter_form_success = 'form.success' | t
+  assign pxs_newsletter_form_placeholder = 'form.placeholder' | t
+  assign pxs_newsletter_form_submit = 'form.submit' | t
+  assign pxs_newsletter_form_id = 'pxs-newsletter-' | append: section.id
+  assign pxs_newsletter_email_id = 'pxs-newsletter-email-' | append: section.id
+%}
+
+<section
+  class="
+    pxs-newsletter
+    pxs-newsletter-desktop-alignment-{{ section.settings.desktop_alignment }}
+    pxs-newsletter-mobile-alignment-{{ section.settings.mobile_alignment }}
+  "
+>
+  {% if section.settings.image %}
+    <figure
+      class="pxs-newsletter-figure"
+      {%
+        render 'rimg',
+        img: section.settings.image,
+        size: '500x',
+        background: true,
+        lazy: true,
+        focal_point: section.settings.image.presentation.focal_point,
+      %}
+    >
+      {%
+        render 'rimg',
+        img: section.settings.image,
+        class: 'pxs-newsletter-image',
+        size: '500x',
+        canvas: true,
+        lazy: true,
+        focal_point: section.settings.image.presentation.focal_point,
+      %}
+    </figure>
+  {% endif %}
+
+  <div class="pxs-newsletter-content">
+    <div class="pxs-newsletter-header">
+      {% if section.settings.title != blank %}
+        <h2 class="pxs-newsletter-heading">
+          {{ section.settings.title | escape }}
+        </h2>
+      {% endif %}
+
+      {% if section.settings.text != blank %}
+        <div class="pxs-newsletter-text">
+          {{ section.settings.text }}
+        </div>
+      {% endif %}
+    </div>
+
+    {%
+      render 'newsletter',
+      pxs_newsletter_image: pxs_newsletter_image,
+      pxs_newsletter_form_success: pxs_newsletter_form_success,
+      pxs_newsletter_form_placeholder: pxs_newsletter_form_placeholder,
+      pxs_newsletter_form_submit: pxs_newsletter_form_submit,
+      pxs_newsletter_form_id: pxs_newsletter_form_id,
+      pxs_newsletter_email_id: pxs_newsletter_email_id,
+    %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.newsletter.name",
+  "class": "pxs-newsletter-section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.newsletter.title.label",
+      "default": "Newsletter"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:sections.newsletter.text.label",
+      "default": "<p>Invite customers to join your mailing list.</p>"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.newsletter.image.label"
+    },
+    {
+      "type": "select",
+      "id": "desktop_alignment",
+      "label": "t:sections.newsletter.desktop_alignment.label",
+      "options": [
+        {
+          "label": "t:sections.newsletter.desktop_alignment.option_1",
+          "value": "left"
+        },
+        {
+          "label": "t:sections.newsletter.desktop_alignment.option_2",
+          "value": "right"
+        }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "select",
+      "id": "mobile_alignment",
+      "label": "t:sections.newsletter.mobile_alignment.label",
+      "options": [
+        {
+          "label": "t:sections.newsletter.mobile_alignment.option_1",
+          "value": "top"
+        },
+        {
+          "label": "t:sections.newsletter.mobile_alignment.option_2",
+          "value": "bottom"
+        }
+      ],
+      "default": "top"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.newsletter.presets.name",
+      "category": "t:sections.newsletter.presets.category"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "*"
+    ]
+  },
+  "locales": {
+    "en": {
+      "form": {
+        "placeholder": "Email address",
+        "submit": "Subscribe",
+        "success": "Thanks for subscribing!"
+      }
+    }
+  }
+}
+
+{% endschema %}

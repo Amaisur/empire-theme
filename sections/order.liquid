@@ -1,0 +1,478 @@
+{% liquid
+  assign enable_orders_atc = settings.enable_orders_atc
+  assign enable_checkbox = false
+
+  # Ensure there's at least one item that can be selected for the 'Select all' checkbox to be enabled.
+  # Otherwise, disable the 'Select all' checkbox.
+  # - The condition `line_item.product_id and all_products[line_item.product.handle]` checks if
+  #   the product is active and not set to draft.
+  # - The condition `line_item.variant.inventory_management == nil or line_item.variant.inventory_quantity > 0`
+  #   checks if the variant is available for purchase; either its inventory is not being tracked or
+  #   if the inventory is being tracked, it has at least one available in-stock.
+  if enable_orders_atc
+    for line_item in order.line_items
+      if line_item.product_id and all_products[line_item.product.handle] and line_item.variant.inventory_management == nil or line_item.variant.inventory_quantity > 0
+        assign enable_checkbox = true
+        break
+      endif
+    endfor
+  endif
+%}
+
+{% if enable_orders_atc and enable_checkbox %}
+  <script
+    type="application/json"
+    data-order-line-items-data
+  >
+    {{ order.line_items | json }}
+  </script>
+
+  <script
+    type="application/json"
+    data-settings
+  >
+    {
+      "cart_redirection": {{ settings.enable_cart_redirection | json }},
+      "success_message": {{ 'customers.order.atc_success' | t | json }}
+    }
+  </script>
+{% endif %}
+
+<nav
+  class="breadcrumbs-container"
+  aria-label="{{ 'general.accessibility.nav_breadcrumbs' | t }}"
+>
+  <a
+    class="account-order__breadcrumb"
+    href="{{ routes.account_url }}"
+  >
+    <span
+      class="account-order__breadcrumb-chevron"
+      aria-hidden="true"
+    >
+      {% render 'icon-chevron-down-small' %}
+    </span>
+    <span class="account-order__breadcrumb-text">
+      {{ 'customers.order.back_to_account' | t }}
+    </span>
+  </a>
+</nav>
+
+<section
+  class="account-page account-page-order"
+  data-template-account>
+  <header class="account-page-masthead">
+    <h1 class="account-page-title">
+      {{ 'customers.order.title' | t: order_number: order.name }}
+    </h1>
+  </header>
+
+  <article class="account-page-content">
+    <div class="account-page--two-column">
+      {% comment %}
+        Order information
+      {% endcomment %}
+      <div class="account-page--column-large">
+        <table
+          class="
+            account-table
+            account-order
+            {% if enable_orders_atc %}account-order--enable-atc{% endif %}
+          "
+        >
+          <thead>
+            <tr>
+              {% if enable_orders_atc %}
+                <th
+                  class="order-checkbox"
+                  data-checkbox
+                  data-select-all-checkbox
+                >
+                  <input
+                    class="order-checkbox__input"
+                    id="order-checkbox-all"
+                    type="checkbox"
+                    title="Select all"
+                    {% if enable_checkbox %}
+                      data-select-all-checkbox-input
+                    {% else %}
+                      disabled
+                    {% endif %}
+                  >
+                  <div class="order-checkbox-label-wrapper">
+                    <label
+                      class="
+                        order-checkbox__label
+                        {% unless enable_checkbox %}order-checkbox__label--disabled{% endunless %}
+                      "
+                      for="order-checkbox-all"
+                      aria-label="Select all orders"
+                    >
+                      <span class="order-checkbox__icon">
+                        {% liquid
+                          assign checkmark_additional_class = ''
+                          unless enable_checkbox
+                            assign checkmark_additional_class = 'checkmark--disabled'
+                          endunless
+                        %}
+                        {%
+                          render 'icon-checkmark-animated',
+                          animation_state: 'unchecked',
+                          additional_classes: checkmark_additional_class
+                        %}
+                      </span>
+                      <span class="order-checkbox__select-all-text">
+                        {{ 'customers.order.select_all_items' | t }}
+                      </span>
+                      <p class="order-checkbox__select-count-text">
+                        <span data-select-items-count></span>
+                        <span>{{ 'customers.order.selected' | t }}</span>
+                      </p>
+                    </label>
+                  </div>
+                </th>
+              {% endif %}
+              <th class="order-item">
+                {{ 'customers.order.item' | t }}
+              </th>
+              <th class="order-item-price">
+                {{ 'customers.order.price' | t }}
+              </th>
+              <th class="order-item-quantity">
+                {{ 'customers.order.quantity' | t }}
+              </th>
+              <th class="order-item-total">
+                {{ 'customers.order.total' | t }}
+              </th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {% for line_item in order.line_items %}
+              {% liquid
+                assign is_product_or_variant_in_stock = true
+                assign is_product_in_store = true
+                assign is_product_status_active = true
+                assign is_variant_in_store = true
+                assign is_checkbox_enabled = true
+                assign checkmark_additional_class = ''
+                assign item_title = line_item.product.title
+
+                if line_item.variant.inventory_quantity == 0 and line_item.variant.inventory_management
+                  assign is_product_or_variant_in_stock = false
+                endif
+
+                if line_item.product_id == blank
+                  assign is_product_in_store = false
+                endif
+
+                if is_product_in_store and all_products[line_item.product.handle] == blank
+                  assign is_product_status_active = false
+                endif
+
+                if line_item.variant == blank
+                  assign is_variant_in_store = false
+                endif
+
+                unless is_product_or_variant_in_stock and is_product_in_store and is_product_status_active and is_variant_in_store
+                  assign is_checkbox_enabled = false
+                endunless
+
+                if is_checkbox_enabled == false
+                  assign checkmark_additional_class = 'checkmark--disabled'
+                endif
+
+                if line_item.gift_card or is_product_in_store == false
+                  assign item_title = line_item.title
+                endif
+              %}
+
+              <tr {% if order.cancelled %}class="cancelled_order"{% endif %} data-order-row>
+                {% if enable_orders_atc %}
+                  <td class="order-checkbox" data-checkbox>
+                    <input
+                      class="order-checkbox__input"
+                      id="order-checkbox-{{ line_item.id }}"
+                      type="checkbox"
+                      {% if is_checkbox_enabled %}
+                        data-line-checkbox-input
+                      {% else %}
+                        disabled
+                      {% endif %}
+                      data-line-item-id="{{ line_item.id | json }}"
+                    >
+                    <label
+                      class="
+                        order-checkbox__label
+                        {% unless is_checkbox_enabled %}order-checkbox__label--disabled{% endunless %}
+                      "
+                      for="order-checkbox-{{ line_item.id }}"
+                      aria-label="Select order"
+                    >
+                      <span class="order-checkbox__icon">
+                        {%
+                          render 'icon-checkmark-animated',
+                          animation_state: 'unchecked',
+                          additional_classes: checkmark_additional_class
+                        %}
+                      </span>
+                    </label>
+                  </td>
+                {% endif %}
+                <td class="order-item">
+                  <a
+                    class="order-image"
+                    {% if is_product_in_store %}
+                      href="{{ line_item.product.url }}"
+                    {% endif %}
+                  >
+                    {% if line_item.image %}
+                      {%
+                        render 'rimg',
+                        img: line_item.image,
+                        alt: line_item.title,
+                        size: '75x'
+                      %}
+                    {%- else -%}
+                      {{ 'product-1' | placeholder_svg_tag: 'placeholder--image order-item-placeholder' }}
+                    {%- endif -%}
+                  </a>
+                  <div class="order-item-content">
+                    {% if is_product_in_store %}
+                      <a
+                        class="order-item-title"
+                        {% if is_variant_in_store %}
+                          href="{{ line_item.url }}"
+                        {% else %}
+                          href="{{ line_item.product.url }}"
+                        {% endif %}
+                      >
+                        {{ item_title }}
+                      </a>
+                    {% else %}
+                      <p class="order-item-title">{{ item_title }}</p>
+                    {% endif %}
+                    {%- unless line_item.variant.title == 'Default Title' or line_item.gift_card -%}
+                      <span class="order-item-options">
+                        {{ line_item.variant.title }}
+                      </span>
+                    {%- endunless -%}
+                    {%- if line_item.line_level_discount_allocations.size > 0 -%}
+                      <ul class="discount-list" aria-label="{{ 'product.general.discounts' | t }}">
+                        {% for discount_allocation in line_item.line_level_discount_allocations %}
+                          <li class="discount-list-item">
+                            {% render 'icon-library', id: 'icon-sale-tag' %}
+                            {{ discount_allocation.discount_application.title }}
+                            (-<span class="money">{{ discount_allocation.amount | money }}</span>)
+                          </li>
+                        {% endfor %}
+                      </ul>
+                    {%- endif -%}
+                    {% if line_item.selling_plan_allocation.selling_plan %}
+                      <span class="line-item-subscriptions">{{ line_item.selling_plan_allocation.selling_plan.name }}</span>
+                    {% endif %}
+                    {% if is_product_or_variant_in_stock == false %}
+                      {%
+                        render 'product-badge',
+                        class_root: 'product',
+                        product_available: false,
+                      %}
+                    {% elsif is_product_in_store == false %}
+                      <p class="order-item-content__error">
+                        {{ 'customers.order.product_missing' | t }}
+                      </p>
+                    {% elsif is_product_in_store and is_variant_in_store == false %}
+                      <p class="order-item-content__error">
+                        {{ 'customers.order.variant_missing' | t }}
+                      </p>
+                    {% endif %}
+                  </div>
+                </td>
+                <td class="order-item-price">
+                  <p class="order-item--cell-label">{{ 'customers.order.price' | t }}</p>
+                  {%- if line_item.line_level_discount_allocations.size > 0 -%}
+                    <span class="visually-hidden">{{ 'product.item.price.original' | t }}</span>
+                    <s class="money order-item-original-price">
+                      {{ line_item.original_price | money }}
+                    </s>
+                    <span class="visually-hidden">{{ 'product.item.price.current' | t }}</span>
+                    <span class="money order-item-discount-price">
+                  {%- else -%}
+                    <span class="money">
+                  {%- endif -%}
+                    {{ line_item.final_price | money }}
+                  </span>
+
+                  {% capture total_quantity %}<span class="order-item--total-quantity" data-total-quantity>{{ line_item.unit_price_measurement.quantity_value }}{{ line_item.unit_price_measurement.quantity_unit }}</span>{% endcapture %}
+                  {% capture unit_price %}<span class="order-item--unit-price-amount money" data-unit-price-amount>{{ line_item.unit_price | money }}</span>{% endcapture %}
+                  {% capture unit_measure %}<span class="order-item--unit-price-measure" data-unit-price-measure>{%- if line_item.unit_price_measurement.reference_value != 1 -%}{{ line_item.unit_price_measurement.reference_value }}{%- endif %}{{ line_item.unit_price_measurement.reference_unit }}</span>{% endcapture %}
+
+                  {% if line_item.unit_price_measurement %}
+                    <span class="order-item--unit-price">
+                      {{ 'product.general.price_per_unit_html' | t: total_quantity: total_quantity, unit_price: unit_price, unit_measure: unit_measure | strip_newlines }}
+                    </span>
+                  {% endif %}
+                </td>
+                <td class="order-item-quantity">
+                  <p class="order-item--cell-label">{{ 'customers.order.quantity' | t }}</p>
+                  <p class="order-quantity-value">{{ line_item.quantity }}</p>
+                </td>
+                <td class="order-item-total">
+                  <p class="order-item--cell-label">{{ 'customers.order.total' | t }}</p>
+                  {%- if line_item.line_level_discount_allocations.size > 0 -%}
+                    <span class="visually-hidden">{{ 'product.item.price.original' | t }}</span>
+                    <s class="money order-item-original-price">
+                      {{ line_item.original_line_price | money }}
+                    </s>
+                    <span class="visually-hidden">{{ 'product.item.price.current' | t }}</span>
+                    <span class="money order-item-discount-price">
+                  {%- else -%}
+                    <span class="money">
+                  {%- endif -%}
+                    {{ line_item.final_line_price | money }}
+                  </span>
+                </td>
+              </tr>
+            {% endfor %}
+          </tbody>
+
+        </table>
+          <div class="account-table order-footer">
+            <div class="order-footer-item">
+              <span class="order-footer-label">
+                {{ 'customers.order.subtotal' | t }}
+              </span>
+              <span class="order-footer-value">
+                <span class="money">
+                  {{ order.line_items_subtotal_price | money }}
+                </span>
+              </span>
+            </div>
+
+            {%- for discount_application in order.cart_level_discount_applications -%}
+              <div class="order-footer-item discount-list-item">
+                <span class="order-footer-label cart-discount-title">
+                  {% render 'icon-library', id: 'icon-sale-tag' %}
+                  {{- discount_application.title -}}
+                </span>
+                <span class="order-footer-value cart-discount-price">-<span class="money">{{ discount_application.total_allocated_amount | money }}</span></span>
+              </div>
+            {%- endfor -%}
+
+            {% for shipping_method in order.shipping_methods %}
+              <div class="order-footer-item">
+                <span class="order-footer-label">
+                  {{ 'customers.order.shipping' | t: shipping_method: shipping_method.title }}
+                </span>
+                <span class="order-footer-value">
+                  <span class="money">
+                    {{ shipping_method.price | money }}
+                  </span>
+                </span>
+              </div>
+            {% endfor %}
+
+            {% for tax_line in order.tax_lines %}
+              <div class="order-footer-item">
+                <span class="order-footer-label">
+                  {% assign tax_rate = tax_line.rate | times: 100 %}
+                  {{ 'customers.order.tax' | t: title: tax_line.title, rate: tax_rate }}
+                </span>
+                <span class="order-footer-value">
+                  <span class="money">
+                    {{ tax_line.price | money }}
+                  </span>
+                </span>
+              </div>
+            {% endfor %}
+
+            <div class="order-footer-total">
+              <span class="order-footer-label">
+                {{ 'customers.order.total' | t }}
+              </span>
+              <span class="order-footer-value">
+                <span class="money">
+                  {{ order.total_price | money }}
+                </span>
+              </span>
+            </div>
+          </div>
+
+        {% if order.note != blank %}
+          <h2 class="account-page-subtitle">
+            {{ 'customers.order.order_notes' | t }}
+          </h2>
+
+          <div class="account-order-note">
+            <p>{{ order.note }}</p>
+          </div>
+        {% endif %}
+
+        {% if order.attributes.size > 0 %}
+          <h2 class="account-page-subtitle">
+            {{ 'customers.order.additional_notes' | t }}
+          </h2>
+
+          <ul class="account-order-attributes">
+            {% for attribute in order.attributes %}
+              <li>
+                <span class="account-order-attribute-title">
+                  {{ attribute | first }}:
+                </span>
+                <span class="account-order-attribute-content">
+                  {{ attribute | last }}
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+
+        {% comment %}
+          Order-again ATC button
+        {% endcomment %}
+        {% if enable_orders_atc %}
+          <button
+            class="order-page__atc-button disabled"
+            type="button"
+            disabled
+            data-atc-button
+          >
+            <span class="atc-button--text">
+              {{ 'customers.order.add_selected_items' | t }}
+            </span>
+            <span class="atc-button--icon">
+              {%- render 'icon-spinner' -%}
+            </span>
+          </button>
+        {% endif %}
+      </div>
+
+      {% comment %}
+        Billing & Shipping information
+      {% endcomment %}
+      <div class="account-page--column-small account-info">
+        {% if order.shipping_address %}
+          <div class="account-info-block">
+            <h2 class="account-page-subtitle">
+              {{ 'customers.order.shipping_address' | t }}
+            </h2>
+            {%
+              render 'account-address-list',
+              address: order.shipping_address
+            %}
+          </div>
+        {% endif %}
+
+        <div class="account-info-block">
+          <h2 class="account-page-subtitle">
+            {{ 'customers.order.billing_address' | t }}
+          </h2>
+          {%
+            render 'account-address-list',
+            address: order.billing_address
+          %}
+        </div>
+      </div>
+    </div>
+  </article>
+</section>

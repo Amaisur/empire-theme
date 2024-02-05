@@ -1,0 +1,120 @@
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="static-announcement">
+</script>
+
+{% assign show_everywhere = false %}
+{% assign homepage_only = false %}
+
+{% if
+  section.settings.show_announcement and
+  section.settings.homepage_announcement == false
+%}
+  {% assign show_everywhere = true %}
+{% endif %}
+
+{% if
+  section.settings.show_announcement and
+  section.settings.homepage_announcement and
+  template == 'index'
+%}
+  {% assign homepage_only = true %}
+{% endif %}
+
+{% if show_everywhere or homepage_only %}
+  {% if
+    section.settings.announcement_text != blank or
+    section.settings.announcement_text_mobile != blank
+  %}
+    <div
+      class="
+        announcement-bar
+        {% if section.settings.announcement_text == blank and section.settings.announcement_text_mobile != blank %}
+          only-mobile
+        {% endif %}
+      "
+      style="
+        color: {{ section.settings.announcement_color }};
+        background: {{ section.settings.announcement_background }};
+      "
+      data-announcement-bar
+    >
+      {% if section.settings.announcement_link != blank %}
+        <a
+          class="announcement-bar-link"
+          href="{{ section.settings.announcement_link }}"
+          ></a>
+      {% endif %}
+
+      {% if section.settings.announcement_text != blank %}
+        <div class="announcement-bar-text">
+          {{ section.settings.announcement_text }}
+        </div>
+      {% endif %}
+
+      <div class="announcement-bar-text-mobile">
+        {% if section.settings.announcement_text_mobile != blank %}
+          {{ section.settings.announcement_text_mobile }}
+        {% else %}
+          {{ section.settings.announcement_text }}
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+{% endif %}
+
+{% schema %}
+{
+  "name": "t:sections.announcement_bar.name",
+  "class": "site-announcement",
+  "settings": [
+    {
+      "type": "header",
+      "content": "t:sections.announcement_bar.header_1.content"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_announcement",
+      "label": "t:sections.announcement_bar.show_announcement.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "homepage_announcement",
+      "label": "t:sections.announcement_bar.homepage_announcement.label",
+      "default": false
+    },
+    {
+      "id": "announcement_text",
+      "type": "textarea",
+      "label": "t:sections.announcement_bar.announcement_text.label",
+      "default": "Announce something here"
+    },
+    {
+      "id": "announcement_text_mobile",
+      "type": "textarea",
+      "label": "t:sections.announcement_bar.announcement_text_mobile.label",
+      "info": "t:sections.announcement_bar.announcement_text_mobile.info"
+    },
+    {
+      "id": "announcement_link",
+      "type": "url",
+      "label": "t:sections.announcement_bar.announcement_link.label"
+    },
+    {
+      "id": "announcement_color",
+      "type": "color",
+      "label": "t:sections.announcement_bar.announcement_color.label",
+      "default": "#000000"
+    },
+    {
+      "id": "announcement_background",
+      "type": "color",
+      "label": "t:sections.announcement_bar.announcement_background.label",
+      "default": "#f5f3ed"
+    }
+  ]
+}
+
+{% endschema %}

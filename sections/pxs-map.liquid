@@ -1,0 +1,357 @@
+<script
+  type="application/json"
+  data-section-type="pxs-map"
+  data-section-id="{{ section.id }}"
+  data-section-data
+>
+  {
+    {% if section.settings.enable_custom_colors %}
+      {% assign background_color = section.settings.background_color %}
+      {% assign foreground_color = section.settings.foreground_color %}
+      "colors": {
+        "a": {{ foreground_color | json }},
+        "b": {{ background_color | color_mix: foreground_color, 30 | json }},
+        "c": {{ background_color | color_mix: foreground_color, 50 | json }},
+        "d": {{ background_color | color_mix: foreground_color, 70 | json }},
+        "e": {{ background_color | color_mix: '#ffffff', 98 | json }},
+        "f": {{ background_color | color_mix: '#000000', 50 | json }}
+      },
+    {% endif %}
+    "api_key": {{ section.settings.api_key | default: false | json }},
+    "address": {{ section.settings.address | json }},
+    "zoom": {{ section.settings.zoom | json }}
+  }
+</script>
+
+<script type="application/pxs-animation-mapping+json">
+  {
+    "blocks": [
+      ".pxs-map"
+    ],
+    "elements": [
+      ".pxs-map-wrapper"
+    ]
+  }
+</script>
+
+{% assign layout = section.settings.layout | split: '-' %}
+
+<div
+  class="
+    pxs-map
+    pxs-map-section-layout-{{ layout[0] }}
+    pxs-map-section-layout-y-{{ layout[0] }}-{{ layout[1] }}
+    pxs-map-section-layout-x-{{ layout[0] }}-{{ layout[2] }}
+    pxs-map-section-layout-mobile-{{ section.settings.layout_mobile }}
+  "
+>
+  <div
+    class="
+      pxs-map-wrapper
+      pxs-map-wrapper-height-{{ section.settings.section_height }}
+    "
+    {% if section.settings.image %}
+      {%
+        render 'rimg',
+        img: section.settings.image,
+        size: '1400x',
+        lazy: true,
+        background: true,
+        focal_point: section.settings.image.presentation.focal_point,
+      %}
+    {% endif %}
+    data-map
+  >
+    {% if section.settings.image %}
+      {%
+        render 'rimg',
+        img: section.settings.image,
+        size: '1400x',
+        class: 'pxs-map-image',
+        lazy: true,
+        canvas: true,
+        focal_point: section.settings.image.presentation.focal_point,
+      %}
+    {% endif %}
+
+    <div class="pxs-map-container" data-map-container></div>
+
+    {% if section.settings.opacity != 0 and section.settings.overlay_color != 'rgba(0,0,0,0)' %}
+      {% assign opacity = section.settings.opacity | times: 0.01 %}
+      {% assign overlay = section.settings.overlay_color | color_modify: 'alpha', opacity %}
+
+      <div
+        class="pxs-map-overlay"
+        style="background-color: {{ overlay }}"
+      >
+      </div>
+    {% endif %}
+  </div>
+
+  {% if
+    section.settings.title != blank or
+    section.settings.content != blank
+  %}
+    <div class="pxs-map-card-wrapper">
+      <div
+        class="
+          pxs-map-card
+          pxs-map-card-text-alignment-{{ section.settings.text_alignment }}
+        "
+      >
+        {% if section.settings.title != blank %}
+          <h2 class="pxs-map-card-heading">{{ section.settings.title | escape }}</h2>
+        {% endif %}
+
+        {% if section.settings.content != blank %}
+          <div class="pxs-map-card-content rte">{{ section.settings.content }}</div>
+        {% endif %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.map.name",
+  "class": "pxs-map-section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_height",
+      "label": "t:sections.map.section_height.label",
+      "options": [
+        {
+          "value": "small",
+          "label": "t:sections.map.section_height.option_1"
+        },
+        {
+          "value": "medium",
+          "label": "t:sections.map.section_height.option_2"
+        },
+        {
+          "value": "large",
+          "label": "t:sections.map.section_height.option_3"
+        }
+      ],
+      "default": "medium"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.map.header_1.content"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.map.title.label",
+      "default": "Location"
+    },
+    {
+      "type": "richtext",
+      "id": "content",
+      "label": "t:sections.map.content.label",
+      "default": "<p>1221 Broad St<br>Victoria, BC</p>"
+    },
+    {
+      "type": "select",
+      "id": "text_alignment",
+      "label": "t:sections.map.text_alignment.label",
+      "options": [
+        {
+          "value": "left",
+          "label": "t:sections.map.text_alignment.option_1"
+        },
+        {
+          "value": "center",
+          "label": "t:sections.map.text_alignment.option_2"
+        },
+        {
+          "value": "right",
+          "label": "t:sections.map.text_alignment.option_3"
+        }
+      ],
+      "default": "center"
+    },
+    {
+      "type": "select",
+      "id": "layout",
+      "label": "t:sections.map.layout.label",
+      "options": [
+        {
+          "group": "t:sections.map.layout.group_1",
+          "value": "outside-top-left",
+          "label": "t:sections.map.layout.option_1"
+        },
+        {
+          "group": "t:sections.map.layout.group_1",
+          "value": "outside-center-left",
+          "label": "t:sections.map.layout.option_2"
+        },
+        {
+          "group": "t:sections.map.layout.group_1",
+          "value": "outside-bottom-left",
+          "label": "t:sections.map.layout.option_3"
+        },
+        {
+          "group": "t:sections.map.layout.group_1",
+          "value": "outside-top-right",
+          "label": "t:sections.map.layout.option_4"
+        },
+        {
+          "group": "t:sections.map.layout.group_1",
+          "value": "outside-center-right",
+          "label": "t:sections.map.layout.option_5"
+        },
+        {
+          "group": "t:sections.map.layout.group_1",
+          "value": "outside-bottom-right",
+          "label": "t:sections.map.layout.option_6"
+        },
+        {
+          "group": "t:sections.map.layout.group_2",
+          "value": "overlay-top-left",
+          "label": "t:sections.map.layout.option_7"
+        },
+        {
+          "group": "t:sections.map.layout.group_2",
+          "value": "overlay-top-center",
+          "label": "t:sections.map.layout.option_8"
+        },
+        {
+          "group": "t:sections.map.layout.group_2",
+          "value": "overlay-top-right",
+          "label": "t:sections.map.layout.option_9"
+        },
+        {
+          "group": "t:sections.map.layout.group_2",
+          "value": "overlay-center-left",
+          "label": "t:sections.map.layout.option_10"
+        },
+        {
+          "group": "t:sections.map.layout.group_2",
+          "value": "overlay-center-center",
+          "label": "t:sections.map.layout.option_11"
+        },
+        {
+          "group": "t:sections.map.layout.group_2",
+          "value": "overlay-center-right",
+          "label": "t:sections.map.layout.option_12"
+        },
+        {
+          "group": "t:sections.map.layout.group_2",
+          "value": "overlay-bottom-left",
+          "label": "t:sections.map.layout.option_13"
+        },
+        {
+          "group": "t:sections.map.layout.group_2",
+          "value": "overlay-bottom-center",
+          "label": "t:sections.map.layout.option_14"
+        },
+        {
+          "group": "t:sections.map.layout.group_2",
+          "value": "overlay-bottom-right",
+          "label": "t:sections.map.layout.option_15"
+        }
+      ],
+      "default": "overlay-center-center"
+    },
+    {
+      "type": "select",
+      "id": "layout_mobile",
+      "label": "t:sections.map.layout_mobile.label",
+      "options": [
+        {
+          "value": "above",
+          "label": "t:sections.map.layout_mobile.option_1"
+        },
+        {
+          "value": "below",
+          "label": "t:sections.map.layout_mobile.option_2"
+        }
+      ],
+      "default": "below"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.map.header_2.content"
+    },
+    {
+      "type": "text",
+      "id": "address",
+      "label": "t:sections.map.address.label",
+      "default": "1221 Broad St, Victoria, BC"
+    },
+    {
+      "type": "text",
+      "id": "api_key",
+      "label": "t:sections.map.api_key.label",
+      "info": "t:sections.map.api_key.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "enable_custom_colors",
+      "label": "t:sections.map.enable_custom_colors.label"
+    },
+    {
+      "type": "color",
+      "id": "foreground_color",
+      "label": "t:sections.map.foreground_color.label",
+      "default": "#292929"
+    },
+    {
+      "type": "color",
+      "id": "background_color",
+      "label": "t:sections.map.background_color.label",
+      "default": "#ffffff"
+    },
+    {
+      "type": "range",
+      "id": "zoom",
+      "label": "t:sections.map.zoom.label",
+      "min": 1,
+      "max": 6,
+      "step": 1,
+      "unit": "x",
+      "default": 2
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.map.image.label",
+      "info": "t:sections.map.image.info"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.map.header_3.content"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "t:sections.map.overlay_color.label",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "opacity",
+      "label": "t:sections.map.opacity.label",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "%",
+      "default": 10
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.map.presets.name",
+      "category": "t:sections.map.presets.category"
+    }
+  ],
+  "disabled_on": {
+    "groups": [
+      "*"
+    ]
+  }
+}
+
+{% endschema %}

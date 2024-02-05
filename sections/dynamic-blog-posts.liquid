@@ -1,0 +1,115 @@
+{% assign blog = blogs[section.settings.blog] %}
+{% assign blog_url = '#' %}
+{% assign onboarding = true %}
+
+{% if section.settings.blog != 'none' and blog.articles.size > 0 %}
+  {% assign onboarding = false %}
+  {% assign blog_url = blog.url %}
+{% endif %}
+
+{% assign article_count = 3 %}
+{% if onboarding == false and blog.articles.size < article_count %}
+  {% assign article_count = blog.articles.size %}
+{% endif %}
+
+<script
+  type="application/json"
+  data-section-id="{{ section.id }}"
+  data-section-type="dynamic-blog-posts">
+</script>
+
+<script type="application/pxs-animation-mapping+json">
+  {
+    "blocks": [".article--excerpt-wrapper"],
+    "elements": [
+      ".article--excerpt-content"
+    ]
+  }
+</script>
+
+<section class="blogposts--container blogposts--count-{{ article_count }}">
+  {% if section.settings.title != blank %}
+    <h2 class="home-section--title">
+      {{ section.settings.title | escape }}
+    </h2>
+  {% endif %}
+
+  <ul class="home-section--content blogposts--inner" data-blog-posts>
+    {% if onboarding %}
+      {% for i in (1..article_count) %}
+        {%
+          render 'article-excerpt',
+          onboarding: true
+        %}
+      {% endfor %}
+    {% else %}
+      {% for article in blog.articles limit: article_count %}
+        {%
+          render 'article-excerpt',
+          article: article
+        %}
+      {% endfor %}
+    {% endif %}
+  </ul>
+
+  <div class="blogposts--footer">
+    <a class="blogposts--footer-link" href="{{ blog_url }}">
+      {{ 'blog.general.see_more' | t }}
+
+      <span class="blogposts--footer-icon">
+        {% render 'icon-library', id: 'icon-signpost-arrow' %}
+      </span>
+    </a>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.blog_posts.name",
+  "class": "blogposts--section",
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.blog_posts.title.label",
+      "default": "Blog posts"
+    },
+    {
+      "type": "blog",
+      "id": "blog",
+      "label": "t:sections.blog_posts.blog.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_date",
+      "label": "t:sections.blog_posts.show_date.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_author",
+      "label": "t:sections.blog_posts.show_author.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_excerpt",
+      "label": "t:sections.blog_posts.show_excerpt.label",
+      "default": true
+    }
+  ],
+  "presets": [
+    {
+      "category": "t:sections.blog_posts.presets.blog_posts.category",
+      "name": "t:sections.blog_posts.presets.blog_posts.name",
+      "settings": {
+        "blog": "none"
+      }
+    }
+  ],
+  "disabled_on": {
+    "groups": ["*"]
+  }
+}
+
+{% endschema %}

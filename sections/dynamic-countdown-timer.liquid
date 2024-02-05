@@ -1,0 +1,955 @@
+{% liquid
+  assign section_height = section.settings.section_height
+
+  assign image = section.settings.image
+
+  assign countdown_year = section.settings.countdown_year | escape
+  assign countdown_month = section.settings.countdown_month
+  assign countdown_day = section.settings.countdown_day
+  assign countdown_hour = section.settings.countdown_hour
+  assign countdown_minute = section.settings.countdown_minute
+  assign countdown_timer_background = section.settings.countdown_timer_background
+  assign countdown_timer_complete = section.settings.countdown_timer_complete
+  assign countdown_timer_message = section.settings.countdown_timer_message
+
+  assign product = all_products[section.settings.product]
+
+  assign heading = section.settings.title
+  assign text = section.settings.text
+  assign button_label = section.settings.button_label
+  assign button_link = section.settings.button_link
+  assign button_style = section.settings.button_style
+
+  assign text_color = section.settings.text_color
+  assign overlay_color = section.settings.overlay_color
+  assign overlay_opacity = section.settings.overlay_opacity
+  assign product_card_background_color = section.settings.product_card_background_color
+%}
+
+<script type="application/pxs-animation-mapping+json">
+  {
+    "blocks": [".countdown-timer__caption"],
+    "elements": [
+      ".countdown",
+      ".countdown-timer__caption-heading",
+      ".countdown-timer__caption-text",
+      ".countdown-timer__caption-button"
+    ]
+  }
+</script>
+
+<script
+  type="application/json"
+  data-section-type="dynamic-countdown-timer"
+  data-section-id="{{ section.id }}"
+>
+</script>
+
+{% comment %}Inject @pixelunion/pxs-countdown-timer/countdown-timer begin{% endcomment %}
+{% comment %}
+  @param section {Object}
+    The section object
+
+  @param full_width {Boolean}
+    If true, expand the section to fill it's container
+
+  @param section_height {String}
+    The minimum height of the section
+
+  @param section_classes {String}
+    A space separated list of class names added to the root element
+
+  @param image {Object}
+    The section image
+
+  @param countdown_year {String}
+    The countdown timer year
+
+  @param countdown_month {String}
+    The countdown timer month
+
+  @param countdown_day {String}
+    The countdown timer day
+
+  @param countdown_hour {String}
+    The countdown timer hour
+
+  @param countdown_minute {String}
+    The countdown timer minute
+
+  @param countdown_timer_background {Boolean}
+    If true, show the countdown timer background
+
+  @param countdown_timer_complete {Boolean}
+    If true, hide the countdown timer when the timer expires
+
+  @param countdown_timer_message {String}
+    The countdown timer message shown when the timer expires
+
+  @param product {Object}
+    The product object
+
+  @param heading {String}
+    The section heading
+
+  @param text {String}
+    The section text
+
+  @param button_label {String}
+    The section button label
+
+  @param button_link {String}
+    The section button link
+
+  @param button_style {String}
+    The section button style
+
+  @param text_color {Color}
+    The section text color
+
+  @param overlay_color {Color}
+    The section overlay color
+
+  @param overlay_opacity {Number}
+    The section overlay opacity
+
+  @param product_card_background_color {Color}
+    The product card background color
+
+  @param include_wrapper {Boolean}
+    Optionally include a wrapper element between the section element and the section content,
+    wrapping the content and product card with the classname .countdown-timer__wrapper
+{% endcomment %}
+
+{% liquid
+  if product != blank
+    assign product_status = 'product-enabled'
+  else
+    assign product_status = 'product-disabled'
+  endif
+
+  if overlay_opacity > 0 and overlay_color
+    assign overlay_opacity = overlay_opacity | times: 0.01
+    assign overlay_color = overlay_color | color_modify: 'alpha', overlay_opacity
+  endif
+
+  if full_width
+    assign section_width = 'full-width'
+  else
+    assign section_width = 'content-width'
+  endif
+
+  assign include_wrapper = include_wrapper | default: false
+%}
+
+{% style %}
+  #shopify-section-{{ section.id }} .countdown-timer {
+    --text-color: {{ text_color }};
+    --text-color-alpha: {{ text_color | color_modify: 'alpha', 0.5 }};
+    {%- if overlay_opacity > 0 -%}
+      --overlay-background-color: {{ overlay_color }};
+    {%- endif -%}
+    --image-aspect-ratio: {{ image.aspect_ratio | default: 'auto' }};
+    --product-card-background-color: {{ product_card_background_color }};
+  }
+{% endstyle %}
+
+<section
+  class="
+    countdown-timer
+    countdown-timer--loading
+    countdown-timer--{{ section_height }}
+    countdown-timer--{{ section_width }}
+    countdown-timer--{{ product_status }}
+    {{ section_classes }}
+  "
+  data-countdown-timer
+>
+  {%- if include_wrapper -%}
+    <div class="countdown-timer__wrapper">
+  {%- endif -%}
+    <div class="countdown-timer__content">
+      <div class="countdown-timer__overlay">
+        <div class="countdown-timer__caption">
+          {% if heading != blank or text != blank %}
+            <div class="countdown-timer__caption-header">
+              {% if heading != blank %}
+                <h3 class="countdown-timer__caption-heading">
+                  {{ heading | escape }}
+                </h3>
+              {% endif %}
+
+              {% if text != blank %}
+                <div class="countdown-timer__caption-text">
+                  {{ text }}
+                </div>
+              {% endif %}
+
+              {% if button_label != blank %}
+                <a
+                  class="
+                    countdown-timer__caption-button
+                    countdown-timer__caption-button--{{ button_style }}
+                  "
+                  href="{{ button_link }}"
+                >
+                  {{ button_label | escape }}
+                </a>
+              {% endif %}
+            </div>
+          {% endif %}
+
+          {%
+            render 'countdown',
+            countdown_year: countdown_year,
+            countdown_month: countdown_month,
+            countdown_day: countdown_day,
+            countdown_hour: countdown_hour,
+            countdown_minute: countdown_minute,
+            countdown_timer_background: countdown_timer_background,
+            countdown_timer_complete: countdown_timer_complete,
+            countdown_timer_message: countdown_timer_message,
+          %}
+
+          {% if button_label != blank %}
+            <div class="countdown-timer__caption-footer">
+              <a
+                class="
+                  countdown-timer__caption-button
+                  countdown-timer__caption-button--{{ button_style }}
+                "
+                href="{{ button_link }}"
+              >
+                {{ button_label | escape }}
+              </a>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if image %}
+        <div
+          class="countdown-timer__image"
+        >
+          {%
+            render 'rimg',
+            img: image,
+            lazy: true,
+            class: 'countdown-timer__image-element',
+            focal_point: image.presentation.focal_point,
+          %}
+        </div>
+      {% endif %}
+    </div>
+
+    {% if product != blank %}
+      <div class="countdown-timer__product-card">
+        {%
+          render 'countdown-product-card',
+          product: product,
+        %}
+      </div>
+    {% endif %}
+  {%- if include_wrapper -%}
+    </div>
+  {%- endif -%}
+</section>
+{% comment %}Inject @pixelunion/pxs-countdown-timer/countdown-timer end{% endcomment %}
+
+
+{% render 'quick-shop' %}
+
+{% schema %}
+{
+  "name": "t:sections.countdown_timer.name",
+  "class": "shopify-section--countdown-timer",
+  "settings": [
+    {
+      "type": "select",
+      "id": "section_height",
+      "label": "t:sections.countdown_timer.section_height.label",
+      "options": [
+        {
+          "value": "small",
+          "label": "t:sections.countdown_timer.section_height.option_1"
+        },
+        {
+          "value": "medium",
+          "label": "t:sections.countdown_timer.section_height.option_2"
+        },
+        {
+          "value": "large",
+          "label": "t:sections.countdown_timer.section_height.option_3"
+        },
+        {
+          "value": "natural",
+          "label": "t:sections.countdown_timer.section_height.option_4"
+        }
+      ],
+      "default": "small"
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "t:sections.countdown_timer.image.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.countdown_timer.header_1.content"
+    },
+    {
+      "type": "text",
+      "id": "countdown_year",
+      "label": "t:sections.countdown_timer.countdown_year.label",
+      "default": "2024"
+    },
+    {
+      "type": "select",
+      "id": "countdown_month",
+      "label": "t:sections.countdown_timer.countdown_month.label",
+      "options": [
+        {
+          "value": "01",
+          "label": "t:sections.countdown_timer.countdown_month.option_1"
+        },
+        {
+          "value": "02",
+          "label": "t:sections.countdown_timer.countdown_month.option_2"
+        },
+        {
+          "value": "03",
+          "label": "t:sections.countdown_timer.countdown_month.option_3"
+        },
+        {
+          "value": "04",
+          "label": "t:sections.countdown_timer.countdown_month.option_4"
+        },
+        {
+          "value": "05",
+          "label": "t:sections.countdown_timer.countdown_month.option_5"
+        },
+        {
+          "value": "06",
+          "label": "t:sections.countdown_timer.countdown_month.option_6"
+        },
+        {
+          "value": "07",
+          "label": "t:sections.countdown_timer.countdown_month.option_7"
+        },
+        {
+          "value": "08",
+          "label": "t:sections.countdown_timer.countdown_month.option_8"
+        },
+        {
+          "value": "09",
+          "label": "t:sections.countdown_timer.countdown_month.option_9"
+        },
+        {
+          "value": "10",
+          "label": "t:sections.countdown_timer.countdown_month.option_10"
+        },
+        {
+          "value": "11",
+          "label": "t:sections.countdown_timer.countdown_month.option_11"
+        },
+        {
+          "value": "12",
+          "label": "t:sections.countdown_timer.countdown_month.option_12"
+        }
+      ],
+      "default": "01"
+    },
+    {
+      "type": "select",
+      "id": "countdown_day",
+      "label": "t:sections.countdown_timer.countdown_day.label",
+      "options": [
+        {
+          "value": "01",
+          "label": "t:sections.countdown_timer.countdown_day.option_1"
+        },
+        {
+          "value": "02",
+          "label": "t:sections.countdown_timer.countdown_day.option_2"
+        },
+        {
+          "value": "03",
+          "label": "t:sections.countdown_timer.countdown_day.option_3"
+        },
+        {
+          "value": "04",
+          "label": "t:sections.countdown_timer.countdown_day.option_4"
+        },
+        {
+          "value": "05",
+          "label": "t:sections.countdown_timer.countdown_day.option_5"
+        },
+        {
+          "value": "06",
+          "label": "t:sections.countdown_timer.countdown_day.option_6"
+        },
+        {
+          "value": "07",
+          "label": "t:sections.countdown_timer.countdown_day.option_7"
+        },
+        {
+          "value": "08",
+          "label": "t:sections.countdown_timer.countdown_day.option_8"
+        },
+        {
+          "value": "09",
+          "label": "t:sections.countdown_timer.countdown_day.option_9"
+        },
+        {
+          "value": "10",
+          "label": "t:sections.countdown_timer.countdown_day.option_10"
+        },
+        {
+          "value": "11",
+          "label": "t:sections.countdown_timer.countdown_day.option_11"
+        },
+        {
+          "value": "12",
+          "label": "t:sections.countdown_timer.countdown_day.option_12"
+        },
+        {
+          "value": "13",
+          "label": "t:sections.countdown_timer.countdown_day.option_13"
+        },
+        {
+          "value": "14",
+          "label": "t:sections.countdown_timer.countdown_day.option_14"
+        },
+        {
+          "value": "15",
+          "label": "t:sections.countdown_timer.countdown_day.option_15"
+        },
+        {
+          "value": "16",
+          "label": "t:sections.countdown_timer.countdown_day.option_16"
+        },
+        {
+          "value": "17",
+          "label": "t:sections.countdown_timer.countdown_day.option_17"
+        },
+        {
+          "value": "18",
+          "label": "t:sections.countdown_timer.countdown_day.option_18"
+        },
+        {
+          "value": "19",
+          "label": "t:sections.countdown_timer.countdown_day.option_19"
+        },
+        {
+          "value": "20",
+          "label": "t:sections.countdown_timer.countdown_day.option_20"
+        },
+        {
+          "value": "21",
+          "label": "t:sections.countdown_timer.countdown_day.option_21"
+        },
+        {
+          "value": "22",
+          "label": "t:sections.countdown_timer.countdown_day.option_22"
+        },
+        {
+          "value": "23",
+          "label": "t:sections.countdown_timer.countdown_day.option_23"
+        },
+        {
+          "value": "24",
+          "label": "t:sections.countdown_timer.countdown_day.option_24"
+        },
+        {
+          "value": "25",
+          "label": "t:sections.countdown_timer.countdown_day.option_25"
+        },
+        {
+          "value": "26",
+          "label": "t:sections.countdown_timer.countdown_day.option_26"
+        },
+        {
+          "value": "27",
+          "label": "t:sections.countdown_timer.countdown_day.option_27"
+        },
+        {
+          "value": "28",
+          "label": "t:sections.countdown_timer.countdown_day.option_28"
+        },
+        {
+          "value": "29",
+          "label": "t:sections.countdown_timer.countdown_day.option_29"
+        },
+        {
+          "value": "30",
+          "label": "t:sections.countdown_timer.countdown_day.option_30"
+        },
+        {
+          "value": "31",
+          "label": "t:sections.countdown_timer.countdown_day.option_31"
+        }
+      ],
+      "default": "01"
+    },
+    {
+      "type": "select",
+      "id": "countdown_hour",
+      "label": "t:sections.countdown_timer.countdown_hour.label",
+      "options": [
+        {
+          "value": "00",
+          "label": "t:sections.countdown_timer.countdown_hour.option_1"
+        },
+        {
+          "value": "01",
+          "label": "t:sections.countdown_timer.countdown_hour.option_2"
+        },
+        {
+          "value": "02",
+          "label": "t:sections.countdown_timer.countdown_hour.option_3"
+        },
+        {
+          "value": "03",
+          "label": "t:sections.countdown_timer.countdown_hour.option_4"
+        },
+        {
+          "value": "04",
+          "label": "t:sections.countdown_timer.countdown_hour.option_5"
+        },
+        {
+          "value": "05",
+          "label": "t:sections.countdown_timer.countdown_hour.option_6"
+        },
+        {
+          "value": "06",
+          "label": "t:sections.countdown_timer.countdown_hour.option_7"
+        },
+        {
+          "value": "07",
+          "label": "t:sections.countdown_timer.countdown_hour.option_8"
+        },
+        {
+          "value": "08",
+          "label": "t:sections.countdown_timer.countdown_hour.option_9"
+        },
+        {
+          "value": "09",
+          "label": "t:sections.countdown_timer.countdown_hour.option_10"
+        },
+        {
+          "value": "10",
+          "label": "t:sections.countdown_timer.countdown_hour.option_11"
+        },
+        {
+          "value": "11",
+          "label": "t:sections.countdown_timer.countdown_hour.option_12"
+        },
+        {
+          "value": "12",
+          "label": "t:sections.countdown_timer.countdown_hour.option_13"
+        },
+        {
+          "value": "13",
+          "label": "t:sections.countdown_timer.countdown_hour.option_14"
+        },
+        {
+          "value": "14",
+          "label": "t:sections.countdown_timer.countdown_hour.option_15"
+        },
+        {
+          "value": "15",
+          "label": "t:sections.countdown_timer.countdown_hour.option_16"
+        },
+        {
+          "value": "16",
+          "label": "t:sections.countdown_timer.countdown_hour.option_17"
+        },
+        {
+          "value": "17",
+          "label": "t:sections.countdown_timer.countdown_hour.option_18"
+        },
+        {
+          "value": "18",
+          "label": "t:sections.countdown_timer.countdown_hour.option_19"
+        },
+        {
+          "value": "19",
+          "label": "t:sections.countdown_timer.countdown_hour.option_20"
+        },
+        {
+          "value": "20",
+          "label": "t:sections.countdown_timer.countdown_hour.option_21"
+        },
+        {
+          "value": "21",
+          "label": "t:sections.countdown_timer.countdown_hour.option_22"
+        },
+        {
+          "value": "22",
+          "label": "t:sections.countdown_timer.countdown_hour.option_23"
+        },
+        {
+          "value": "23",
+          "label": "t:sections.countdown_timer.countdown_hour.option_24"
+        }
+      ],
+      "default": "12"
+    },
+    {
+      "type": "select",
+      "id": "countdown_minute",
+      "label": "t:sections.countdown_timer.countdown_minute.label",
+      "options": [
+        {
+          "value": "00",
+          "label": "t:sections.countdown_timer.countdown_minute.option_1"
+        },
+        {
+          "value": "01",
+          "label": "t:sections.countdown_timer.countdown_minute.option_2"
+        },
+        {
+          "value": "02",
+          "label": "t:sections.countdown_timer.countdown_minute.option_3"
+        },
+        {
+          "value": "03",
+          "label": "t:sections.countdown_timer.countdown_minute.option_4"
+        },
+        {
+          "value": "04",
+          "label": "t:sections.countdown_timer.countdown_minute.option_5"
+        },
+        {
+          "value": "05",
+          "label": "t:sections.countdown_timer.countdown_minute.option_6"
+        },
+        {
+          "value": "06",
+          "label": "t:sections.countdown_timer.countdown_minute.option_7"
+        },
+        {
+          "value": "07",
+          "label": "t:sections.countdown_timer.countdown_minute.option_8"
+        },
+        {
+          "value": "08",
+          "label": "t:sections.countdown_timer.countdown_minute.option_9"
+        },
+        {
+          "value": "09",
+          "label": "t:sections.countdown_timer.countdown_minute.option_10"
+        },
+        {
+          "value": "10",
+          "label": "t:sections.countdown_timer.countdown_minute.option_11"
+        },
+        {
+          "value": "11",
+          "label": "t:sections.countdown_timer.countdown_minute.option_12"
+        },
+        {
+          "value": "12",
+          "label": "t:sections.countdown_timer.countdown_minute.option_13"
+        },
+        {
+          "value": "13",
+          "label": "t:sections.countdown_timer.countdown_minute.option_14"
+        },
+        {
+          "value": "14",
+          "label": "t:sections.countdown_timer.countdown_minute.option_15"
+        },
+        {
+          "value": "15",
+          "label": "t:sections.countdown_timer.countdown_minute.option_16"
+        },
+        {
+          "value": "16",
+          "label": "t:sections.countdown_timer.countdown_minute.option_17"
+        },
+        {
+          "value": "17",
+          "label": "t:sections.countdown_timer.countdown_minute.option_18"
+        },
+        {
+          "value": "18",
+          "label": "t:sections.countdown_timer.countdown_minute.option_19"
+        },
+        {
+          "value": "19",
+          "label": "t:sections.countdown_timer.countdown_minute.option_20"
+        },
+        {
+          "value": "20",
+          "label": "t:sections.countdown_timer.countdown_minute.option_21"
+        },
+        {
+          "value": "21",
+          "label": "t:sections.countdown_timer.countdown_minute.option_22"
+        },
+        {
+          "value": "22",
+          "label": "t:sections.countdown_timer.countdown_minute.option_23"
+        },
+        {
+          "value": "23",
+          "label": "t:sections.countdown_timer.countdown_minute.option_24"
+        },
+        {
+          "value": "24",
+          "label": "t:sections.countdown_timer.countdown_minute.option_25"
+        },
+        {
+          "value": "25",
+          "label": "t:sections.countdown_timer.countdown_minute.option_26"
+        },
+        {
+          "value": "26",
+          "label": "t:sections.countdown_timer.countdown_minute.option_27"
+        },
+        {
+          "value": "27",
+          "label": "t:sections.countdown_timer.countdown_minute.option_28"
+        },
+        {
+          "value": "28",
+          "label": "t:sections.countdown_timer.countdown_minute.option_29"
+        },
+        {
+          "value": "29",
+          "label": "t:sections.countdown_timer.countdown_minute.option_30"
+        },
+        {
+          "value": "30",
+          "label": "t:sections.countdown_timer.countdown_minute.option_31"
+        },
+        {
+          "value": "31",
+          "label": "t:sections.countdown_timer.countdown_minute.option_32"
+        },
+        {
+          "value": "32",
+          "label": "t:sections.countdown_timer.countdown_minute.option_33"
+        },
+        {
+          "value": "33",
+          "label": "t:sections.countdown_timer.countdown_minute.option_34"
+        },
+        {
+          "value": "34",
+          "label": "t:sections.countdown_timer.countdown_minute.option_35"
+        },
+        {
+          "value": "35",
+          "label": "t:sections.countdown_timer.countdown_minute.option_36"
+        },
+        {
+          "value": "36",
+          "label": "t:sections.countdown_timer.countdown_minute.option_37"
+        },
+        {
+          "value": "37",
+          "label": "t:sections.countdown_timer.countdown_minute.option_38"
+        },
+        {
+          "value": "38",
+          "label": "t:sections.countdown_timer.countdown_minute.option_39"
+        },
+        {
+          "value": "39",
+          "label": "t:sections.countdown_timer.countdown_minute.option_40"
+        },
+        {
+          "value": "40",
+          "label": "t:sections.countdown_timer.countdown_minute.option_41"
+        },
+        {
+          "value": "41",
+          "label": "t:sections.countdown_timer.countdown_minute.option_42"
+        },
+        {
+          "value": "42",
+          "label": "t:sections.countdown_timer.countdown_minute.option_43"
+        },
+        {
+          "value": "43",
+          "label": "t:sections.countdown_timer.countdown_minute.option_44"
+        },
+        {
+          "value": "44",
+          "label": "t:sections.countdown_timer.countdown_minute.option_45"
+        },
+        {
+          "value": "45",
+          "label": "t:sections.countdown_timer.countdown_minute.option_46"
+        },
+        {
+          "value": "46",
+          "label": "t:sections.countdown_timer.countdown_minute.option_47"
+        },
+        {
+          "value": "47",
+          "label": "t:sections.countdown_timer.countdown_minute.option_48"
+        },
+        {
+          "value": "48",
+          "label": "t:sections.countdown_timer.countdown_minute.option_49"
+        },
+        {
+          "value": "49",
+          "label": "t:sections.countdown_timer.countdown_minute.option_50"
+        },
+        {
+          "value": "50",
+          "label": "t:sections.countdown_timer.countdown_minute.option_51"
+        },
+        {
+          "value": "51",
+          "label": "t:sections.countdown_timer.countdown_minute.option_52"
+        },
+        {
+          "value": "52",
+          "label": "t:sections.countdown_timer.countdown_minute.option_53"
+        },
+        {
+          "value": "53",
+          "label": "t:sections.countdown_timer.countdown_minute.option_54"
+        },
+        {
+          "value": "54",
+          "label": "t:sections.countdown_timer.countdown_minute.option_55"
+        },
+        {
+          "value": "55",
+          "label": "t:sections.countdown_timer.countdown_minute.option_56"
+        },
+        {
+          "value": "56",
+          "label": "t:sections.countdown_timer.countdown_minute.option_57"
+        },
+        {
+          "value": "57",
+          "label": "t:sections.countdown_timer.countdown_minute.option_58"
+        },
+        {
+          "value": "58",
+          "label": "t:sections.countdown_timer.countdown_minute.option_59"
+        },
+        {
+          "value": "59",
+          "label": "t:sections.countdown_timer.countdown_minute.option_60"
+        }
+      ],
+      "default": "30"
+    },
+    {
+      "type": "checkbox",
+      "id": "countdown_timer_background",
+      "label": "t:sections.countdown_timer.countdown_timer_background.label",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "countdown_timer_complete",
+      "label": "t:sections.countdown_timer.countdown_timer_complete.label",
+      "default": false
+    },
+    {
+      "type": "richtext",
+      "id": "countdown_timer_message",
+      "label": "t:sections.countdown_timer.countdown_timer_message.label"
+    },
+    {
+      "type": "product",
+      "id": "product",
+      "label": "t:sections.countdown_timer.product.label"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.countdown_timer.header_2.content"
+    },
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.countdown_timer.title.label",
+      "default": "Countdown timer"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:sections.countdown_timer.text.label",
+      "default": "<p>Use this section to promote limited time offers and boost conversion.</p>"
+    },
+    {
+      "type": "url",
+      "id": "button_link",
+      "label": "t:sections.countdown_timer.button_link.label"
+    },
+    {
+      "type": "text",
+      "id": "button_label",
+      "label": "t:sections.countdown_timer.button_label.label",
+      "default": "Button"
+    },
+    {
+      "type": "select",
+      "id": "button_style",
+      "label": "t:sections.countdown_timer.button_style.label",
+      "options": [
+        {
+          "value": "primary",
+          "label": "t:sections.countdown_timer.button_style.option_1"
+        },
+        {
+          "value": "secondary",
+          "label": "t:sections.countdown_timer.button_style.option_2"
+        }
+      ],
+      "default": "primary"
+    },
+    {
+      "type": "header",
+      "content": "t:sections.countdown_timer.header_3.content"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "t:sections.countdown_timer.text_color.label",
+      "default": "#FFFFFF"
+    },
+    {
+      "type": "color",
+      "id": "overlay_color",
+      "label": "t:sections.countdown_timer.overlay_color.label",
+      "default": "#000000"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "t:sections.countdown_timer.overlay_opacity.label",
+      "min": 0,
+      "max": 100,
+      "step": 1,
+      "unit": "t:sections.countdown_timer.overlay_opacity.unit",
+      "default": 15
+    },
+    {
+      "type": "color",
+      "id": "product_card_background_color",
+      "label": "t:sections.countdown_timer.product_card_background_color.label",
+      "default": "#F5F3ED"
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.countdown_timer.presets.countdown_timer.name",
+      "category": "t:sections.countdown_timer.presets.countdown_timer.category"
+    }
+  ],
+  "disabled_on": {
+    "groups": ["*"]
+  }
+}
+
+{% endschema %}

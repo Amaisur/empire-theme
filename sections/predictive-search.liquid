@@ -1,0 +1,194 @@
+{% liquid
+  assign queries_available = false
+  assign products_results_available = false
+  assign collections_results_available = false
+  assign pages_results_available = false
+  assign posts_results_available = false
+  assign pages_posts_results_available = false
+  assign two_columns = false
+  assign no_search_results = true
+
+  if predictive_search.resources.queries.size > 0
+    assign queries_available = true
+  endif
+
+  if predictive_search.resources.products.size > 0
+    assign products_results_available = true
+  endif
+
+  if predictive_search.resources.collections.size > 0
+    assign collections_results_available = true
+  endif
+
+  if predictive_search.resources.pages.size > 0
+    assign pages_results_available = true
+  endif
+
+  if predictive_search.resources.articles.size > 0
+    assign posts_results_available = true
+  endif
+
+  if pages_results_available or posts_results_available
+    assign pages_posts_results_available = true
+  endif
+
+  if products_results_available and pages_posts_results_available
+    assign two_columns = true
+  endif
+
+  if queries_available or products_results_available or collections_results_available or pages_posts_results_available
+    assign no_search_results = false
+  endif
+%}
+
+{%- if predictive_search.performed -%}
+  <div>
+    {%- if predictive_search.resources.queries.size > 0 or collections_results_available -%}
+      <div class="search-flydown__queries-collections">
+        <h3 class="search-flydown__group-title">{{ 'search.predictive_search.suggestions' | t }}</h3>
+        <ul class="search-flydown__group-list">
+          {%- for query in predictive_search.resources.queries -%}
+            <li class="search-flydown__list-item search-flydown__query-link-item">
+              <a href="{{ query.url }}">{{ query.styled_text }}</a>
+            </li>
+          {%- endfor -%}
+          {%- for collection in predictive_search.resources.collections -%}
+            <li class="search-flydown__list-item">
+              <a href="{{ collection.url }}">{{ collection.title }}</a>
+            </li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+
+    {%- if products_results_available or pages_posts_results_available -%}
+      <div
+        class="
+          search-flydown__products-pages-posts
+          {% if two_columns %}search-flydown__products-pages-posts--two-columns{% endif %}
+        "
+      >
+        {%- if products_results_available -%}
+          <div class="search-flydown--product-items">
+            <h3 class="search-flydown__group-title">{{ 'search.predictive_search.products_title' | t }}</h3>
+            <ul class="search-flydown__group-list">
+              {%- for product in predictive_search.resources.products -%}
+                <li>
+                  <a
+                    class="search-flydown--product"
+                    href="{{ product.url }}"
+                    aria-label="{{ product.title }}"
+                  >
+                    <figure class="search-flydown--product-image">
+                      {%- if product.featured_media != blank -%}
+                        {%
+                          render 'rimg'
+                          img: product.featured_media.preview_image,
+                          alt: product.featured_media.preview_image.alt,
+                          size: '70x',
+                          lazy: true,
+                        %}
+                      {%- else -%}
+                        {{ 'image' | placeholder_svg_tag: 'placeholder--image' }}
+                      {%- endif -%}
+                    </figure>
+                    <div class="search-flydown--product-text">
+                      <span class="search-flydown--product-title">{{ product.title }}</span>
+                      {%- liquid
+                        assign on_sale = false
+                        for variant in product.variants
+                          if variant.compare_at_price > variant.price
+                          assign on_sale = true
+                            break
+                          endif
+                        endfor
+                      -%}
+                      {%
+                        render 'product-price',
+                        product: product,
+                        class_root: 'search-flydown--product',
+                        price: product.price,
+                        price_varies: product.price_varies,
+                        compare_at_price: product.compare_at_price,
+                        compare_at_price_varies: product.compare_at_price_varies,
+                        on_sale: on_sale,
+                      %}
+                      {%- if settings.inventory_status -%}
+                        <div class="search-flydown--product-stock-level">
+                          {%
+                            render 'product-stock-level',
+                            inventory_display: settings.inventory_display,
+                            inventory_transfer: settings.inventory_transfer_notice,
+                            variant: product.selected_or_first_available_variant,
+                            verbose: false,
+                          %}
+                        </div>
+                      {%- endif -%}
+                      {%- liquid
+                        assign swatch_count = nil
+                        if settings.swatches_enable
+                          assign swatch_trigger = settings.swatches_swatch_trigger | strip | downcase
+                          for option in product.options_with_values
+                            assign option_name = option.name | downcase
+                            if option_name == swatch_trigger
+                              assign swatch_count = 'product.color_swatches.swatches_count' | t: count: option.values.size
+                              break
+                            endif
+                          endfor
+                        endif
+                      -%}
+                      <span class="search-flydown--product-swatch-count">{{ swatch_count }}</span>
+                    </div>
+                  </a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+
+        {%- if pages_posts_results_available -%}
+          <div class="search-flydown__pages-posts-items">
+            <h5 class="search-flydown__group-title">
+              {%- if pages_results_available and posts_results_available == false -%}
+                {{ 'search.predictive_search.pages_title' | t }}
+              {%- elsif pages_results_available == false and posts_results_available -%}
+                {{ 'search.predictive_search.posts_title' | t }}
+              {%- else -%}
+                {{ 'search.predictive_search.pages_and_posts_title' | t }}
+              {%- endif -%}
+            </h5>
+            <ul class="search-flydown__group-list search-flydown__pages-posts-items-list">
+              {%- for page in predictive_search.resources.pages -%}
+                <li class="search-flydown__list-item">
+                  <a href="{{ page.url }}">{{ page.title }}</a>
+                </li>
+              {%- endfor -%}
+              {%- for article in predictive_search.resources.articles -%}
+                <li class="search-flydown__list-item">
+                  <a href="{{ article.url }}">{{ article.title }}</a>
+                </li>
+              {%- endfor -%}
+            </ul>
+          </div>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    {%- if no_search_results -%}
+      <p class="search-flydown__no-results">{{ 'search.predictive_search.no_results' | t }}</p>
+    {%- endif -%}
+  </div>
+
+  {%- capture sanitized_terms -%}
+    {%
+      render 'search-sanitizer',
+      search_terms: predictive_search.terms,
+    %}
+  {%- endcapture -%}
+
+  {%- assign sanitized_terms = sanitized_terms | strip -%}
+
+  <button class="search-flydown__continue" type="submit">
+    {{ 'search.predictive_search.view_all_results' | t: terms: sanitized_terms }}
+  </button>
+{%- endif -%}

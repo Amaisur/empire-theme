@@ -1,0 +1,20 @@
+{% for option in product.options_with_values %}
+  {%- assign swatch_trigger = settings.swatches_swatch_trigger | strip | downcase -%}
+  {% assign option_name = option.name | downcase %}
+  {% if option_name == swatch_trigger %}
+    {% assign swatch_values = option.values %}
+    {% assign swatch_option_key = 'option' | append: forloop.index %}
+    {% break %}
+  {% endif %}
+{% endfor %}
+
+<template data-data>
+  {
+    {%
+      render 'swatch-data',
+      product: product,
+      swatch_values: swatch_values,
+      swatch_option_key: swatch_option_key,
+    %}
+  }
+</template>

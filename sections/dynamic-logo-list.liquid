@@ -1,0 +1,106 @@
+<script type="application/pxs-animation-mapping+json">
+  {
+    "blocks": [".logolist--inner"],
+    "elements": [
+      ".logolist--item"
+    ]
+  }
+</script>
+
+<section class="logolist--container">
+  {% if section.settings.title != blank %}
+    <h2 class="home-section--title">
+      {{ section.settings.title | escape }}
+    </h2>
+  {% endif %}
+
+  <div class="home-section--content logolist--inner">
+    {% for block in section.blocks %}
+      <div class="logolist--item" {{ block.shopify_attributes }}>
+        {% if block.settings.link != blank %}
+          <a
+            class="logolist--link"
+            href="{{ block.settings.link }}"
+            target="_blank"
+          >
+        {% endif %}
+
+        {% if block.settings.image %}
+          {%
+            render 'rimg',
+            img: block.settings.image,
+            class: 'logolist--image',
+            size: '160x160',
+            lazy: true,
+            canvas: true,
+            focal_point: block.settings.image.presentation.focal_point,
+          %}
+        {% else %}
+          {{ 'image' | placeholder_svg_tag: 'placeholder--image logolist--image' }}
+        {% endif %}
+
+        {% if block.settings.link != blank %}
+          </a>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.logo_list.name",
+  "class": "logolist--section",
+  "max_blocks": 18,
+  "settings": [
+    {
+      "type": "text",
+      "id": "title",
+      "label": "t:sections.logo_list.title.label",
+      "default": "Logo list"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "t:sections.logo_list.blocks.logo.name",
+      "settings": [
+        {
+          "id": "image",
+          "type": "image_picker",
+          "label": "t:sections.logo_list.blocks.logo.image.label",
+          "info": "t:sections.logo_list.blocks.logo.image.info"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "t:sections.logo_list.blocks.logo.link.label"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "category": "t:sections.logo_list.presets.logo_list.category",
+      "name": "t:sections.logo_list.presets.logo_list.name",
+      "blocks": [
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        },
+        {
+          "type": "logo"
+        }
+      ]
+    }
+  ],
+  "disabled_on": {
+    "groups": ["*"]
+  }
+}
+{% endschema %}
