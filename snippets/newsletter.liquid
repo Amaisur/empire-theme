@@ -1,3 +1,31 @@
+
+<script>
+function getForm() {
+  const newCustomForm = document.querySelector('.newsletter form');
+  console.log(newCustomForm)
+  newCustomForm.addEventListener('submit', (e)=>{
+    e.preventDefault();
+    console.log("form was submit")
+    
+    const customFormData = new FormData(newCustomForm);
+    fetch("https://shop-your-wish-with-us.myshopify.com/contact", {
+      method: "POST",
+      body: customFormData
+    }).then(res => {
+      if (res.ok) {
+        return res.text();
+      } else {
+        throw new Error('Network response was not ok');
+      }
+    }).then(data =>{
+      console.log(data)
+      window.location.href = "/"
+    }).catch(err => {
+      console.log(err)
+    })
+  })
+}
+</script>
 {% liquid
   assign form_id = form_id | default: nil
   assign newsletter_tags = 'prospect'
@@ -60,30 +88,3 @@
     {% endif %}
   {% endform %}
 </div>
-<script>
-function getForm() {
-  const newCustomForm = document.querySelector('.newsletter form');
-  console.log(newCustomForm)
-  newCustomForm.addEventListener('submit', (e)=>{
-    e.preventDefault();
-    console.log("form was submit")
-    
-    const customFormData = new FormData(newCustomForm);
-    fetch("https://shop-your-wish-with-us.myshopify.com/contact", {
-      method: "POST",
-      body: customFormData
-    }).then(res => {
-      if (res.ok) {
-        return res.text();
-      } else {
-        throw new Error('Network response was not ok');
-      }
-    }).then(data =>{
-      console.log(data)
-      window.location.href = "/"
-    }).catch(err => {
-      console.log(err)
-    })
-  })
-}
-</script>
