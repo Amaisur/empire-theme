@@ -1,20 +1,3 @@
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var formbtn = document.querySelector(".newsletter-submit button");
-   
-    if (formbtn) {
-      formbtn.addEventListener("click", function(e) {
-        e.preventDefault();
-        console.log("Form submitted");
-      });
-    } else {
-      console.error('Button not found. Check the selector or HTML structure.');
-    }
-  });
-</script>
-
-
-
 {% liquid
   assign form_id = form_id | default: nil
   assign newsletter_tags = 'prospect'
@@ -31,54 +14,62 @@
 %}
 
 <div class="newsletter">
-  {% form 'customer', id: form_id %}
-    {% if form.posted_successfully? %}
-      <p class="newsletter-success">
-        {{ 'general.newsletter.success' | t }}
-      </p>
-    {% else %}
-      <input
-        type="hidden"
-        name="contact[tags]"
-        value="{{ newsletter_tags }}"
-      >
-
-      <div class="form-fields-inline pxs-newsletter-form-fields">
-        <div class="form-field newsletter-input">
-          <input
-            class="
-              form-field-input
-              form-field-text
-            "
-            type="email"
-            id="{{ input_id }}"
-            name="contact[email]"
-            aria-label="{{ 'general.newsletter.placeholder' | t }}"
-          >
-
-          <label
-            class="form-field-title"
-            for="{{ input_id }}"
-          >
-            {{ 'general.newsletter.placeholder' | t }}
-          </label>
-        </div>
-
-        <div class="form-field newsletter-submit">
-          <button
-            class="button-primary"
-            name="subscribe"
-            type="submit"
-          >
-            {{ 'general.newsletter.subscribe' | t }}
-          </button>
-        
-        </div>
-      </div>
+  <form id="newsletter-form" action="/subscribe" method="post">
+    {% if form_id %}
+      <input type="hidden" name="form_id" value="{{ form_id }}">
     {% endif %}
-  {% endform %}
+    {% if newsletter_tags %}
+      <input type="hidden" name="tags" value="{{ newsletter_tags }}">
+    {% endif %}
+    <div class="form-fields-inline pxs-newsletter-form-fields">
+      <div class="form-field newsletter-input">
+        <input
+          class="form-field-input form-field-text"
+          type="email"
+          id="{{ input_id }}"
+          name="email"
+          aria-label="{{ 'general.newsletter.placeholder' | t }}"
+          required
+        >
+        <label class="form-field-title" for="{{ input_id }}">
+          {{ 'general.newsletter.placeholder' | t }}
+        </label>
+      </div>
+      <div class="form-field newsletter-submit">
+        <button class="button-primary" type="button" id="submit-newsletter">
+          {{ 'general.newsletter.subscribe' | t }}
+        </button>
+      </div>
+    </div>
+  </form>
 </div>
 
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.getElementById('newsletter-form');
+    var submitButton = document.getElementById('submit-newsletter');
 
+    submitButton.addEventListener('click', function() {
+      var formData = new FormData(form);
 
-
+      fetch(form.action, {
+        method: 'POST',
+        body: formData
+      })
+      .then(response => {
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        return response.text();
+      })
+      .then(data => {
+        console.log('Newsletter subscription successful');
+        // Optionally, display a success message or perform other actions
+      })
+      .catch(error => {
+        console.error('Error subscribing to newsletter:', error);
+        // Optionally, display an error message or perform other actions
+      });
+    });
+  });
+</script>
