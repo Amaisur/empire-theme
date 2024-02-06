@@ -17,15 +17,15 @@
             "menu": "main-menu"
           }
         },
-        "social_accounts": {
-          "type": "social_accounts",
-          "settings": {
-          }
-        },
         "menu": {
           "type": "menu",
           "settings": {
             "menu": "home"
+          }
+        },
+        "social_accounts": {
+          "type": "social_accounts",
+          "settings": {
           }
         },
         "newsletter": {
@@ -38,8 +38,8 @@
       },
       "block_order": [
         "menu_xYAV9X",
-        "social_accounts",
         "menu",
+        "social_accounts",
         "newsletter"
       ],
       "settings": {
