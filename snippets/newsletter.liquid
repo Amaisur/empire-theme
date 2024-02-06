@@ -64,14 +64,13 @@
 </div>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var form = document.querySelector('.newsletter form');
+ document.addEventListener('DOMContentLoaded', function() {
+  var form = document.querySelector('.newsletter form');
 
-    form.addEventListener('submit', function() {
-      window.scrollTo({
-        top: document.body.scrollHeight,
-        behavior: 'smooth'
-      });
-    });
+  form.addEventListener('submit', function() {
+    // Scroll to the bottom of the page instantly
+    window.scrollTo({ top: document.body.scrollHeight });
   });
+});
+
 </script>
