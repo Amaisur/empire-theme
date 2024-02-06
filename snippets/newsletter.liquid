@@ -59,6 +59,7 @@
             class="button-primary"
             name="subscribe"
             type="submit"
+            id="submit-newsletter"
           >
             {{ 'general.newsletter.subscribe' | t }}
           </button>
@@ -76,27 +77,23 @@
   </script>
 {% endif %} -->
 
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 <script>
-  $(document).ready(function() {
-    $('.newsletter form').submit(function(e) {
-      e.preventDefault(); // Prevent default form submission
-      
-      var formData = $(this).serialize(); // Serialize form data
-      
-      $.ajax({
-        type: 'POST',
-        url: '/contact', // Update the URL with your form submission endpoint
-        data: formData,
-        success: function(response) {
-          // Update the content of the footer with the response
-          $('.newsletter').html(response);
-        },
-        error: function(xhr, status, error) {
-          console.error(xhr.responseText);
-        }
-      });
+  document.addEventListener('DOMContentLoaded', function() {
+    var form = document.querySelector('#submit-newsletter');
+
+    form.addEventListener('click', function() {
+      var successMessage = document.querySelector('.success-message');
+      if (successMessage) {
+        setTimeout(function() {
+          successMessage.style.display = 'none';
+          var emailField = document.querySelector('#{{ input_id }}');
+          if (emailField) {
+            emailField.value = ''; // Clear the email field
+          }
+        }, 15000); // 15 seconds
+      }
     });
   });
 </script>
+
 
