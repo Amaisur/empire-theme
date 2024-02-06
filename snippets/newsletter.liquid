@@ -77,23 +77,6 @@
   </script>
 {% endif %} -->
 
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    var form = document.querySelector('#submit-newsletter');
-    alert("kk")
-    form.addEventListener('click', function() {
-      var successMessage = document.querySelector('.success-message');
-      if (successMessage) {
-        setTimeout(function() {
-          successMessage.style.display = 'none';
-          var emailField = document.querySelector('#{{ input_id }}');
-          if (emailField) {
-            emailField.value = ''; // Clear the email field
-          }
-        }, 15000); // 15 seconds
-      }
-    });
-  });
-</script>
+
 
 
