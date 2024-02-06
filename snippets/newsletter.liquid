@@ -63,14 +63,11 @@
   {% endform %}
 </div>
 
-<script>
- document.addEventListener('DOMContentLoaded', function() {
-  var form = document.querySelector('.newsletter form');
+{% if form.posted_successfully? %}
+  <script>
+    window.onload = function() {
+      window.scrollTo(0, document.body.scrollHeight);
+    };
+  </script>
+{% endif %}
 
-  form.addEventListener('submit', function() {
-    // Scroll to the bottom of the page instantly
-    window.scrollTo({ top: document.body.scrollHeight });
-  });
-});
-
-</script>
