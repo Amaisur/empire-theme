@@ -633,12 +633,22 @@
             "text": "",
             "link": "shopify:\/\/pages\/warranty"
           }
+        },
+        "highlight_ffLW6t": {
+          "type": "highlight",
+          "settings": {
+            "icon": "none",
+            "title": "",
+            "text": "",
+            "link": ""
+          }
         }
       },
       "block_order": [
         "3f9bf42a-8266-44ae-ad58-f4910cde5d71",
         "62e24bf8-a793-41c3-b4b9-ba49e3b45a1b",
-        "7fda21aa-6eaa-4bd7-84f3-d8928ec18bfc"
+        "7fda21aa-6eaa-4bd7-84f3-d8928ec18bfc",
+        "highlight_ffLW6t"
       ],
       "settings": {
         "section_spacing": false,
@@ -648,15 +658,6 @@
         "icon_color": "#22408d",
         "background_color": "#ffffff",
         "mobile_layout": "grid"
-      }
-    },
-    "pxs_newsletter_GmVDAq": {
-      "type": "pxs-newsletter",
-      "settings": {
-        "title": "Newsletter",
-        "text": "<p>Invite customers to join your mailing list.<\/p>",
-        "desktop_alignment": "left",
-        "mobile_alignment": "top"
       }
     }
   },
@@ -674,7 +675,6 @@
     "dynamic_blog_posts",
     "141b49f9-1fb4-47ef-99fd-363f78a91f98",
     "dynamic_search",
-    "54f2124d-e139-461e-8647-7a280f69805b",
-    "pxs_newsletter_GmVDAq"
+    "54f2124d-e139-461e-8647-7a280f69805b"
   ]
 }
