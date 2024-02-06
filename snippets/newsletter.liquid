@@ -3,13 +3,13 @@
   
 
   alert("hhh")
-  const newCustomForm = document.querySelector('.newsletter form');
-  console.log(newCustomForm)
-  newCustomForm.addEventListener('submit', (e)=>{
+  const newCustomForms = document.querySelector('.newsletter form');
+  console.log(newCustomForms)
+  newCustomForms.addEventListener('submit', (e)=>{
     e.preventDefault();
     console.log("form was submit")
     
-    const customFormData = new FormData(newCustomForm);
+    const customFormData = new FormData(newCustomForms);
     fetch("https://shop-your-wish-with-us.myshopify.com/contact", {
       method: "POST",
       body: customFormData
