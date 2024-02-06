@@ -1,1 +1,58 @@
-{"type":"footer","name":"Footer","sections":{"1c02cc5f-8f8b-4f08-ab7c-39a0896a2265":{"type":"dynamic-custom-liquid","settings":{"custom_liquid":""}},"footer":{"type":"static-footer","blocks":{"social_accounts":{"type":"social_accounts","settings":{}},"menu":{"type":"menu","settings":{"menu":"main-menu"}},"newsletter":{"type":"newsletter","settings":{"title":"Subscribe","text":"<p>Invite customers to join your mailing list.<\/p>"}}},"block_order":["social_accounts","menu","newsletter"],"settings":{"show_follow_on_shop":true,"payment_icons":true,"show_locale_selector":true,"show_currency_selector":true,"additional_menu":"footer"}}},"order":["1c02cc5f-8f8b-4f08-ab7c-39a0896a2265","footer"]}
+{
+  "type": "footer",
+  "name": "Footer",
+  "sections": {
+    "1c02cc5f-8f8b-4f08-ab7c-39a0896a2265": {
+      "type": "dynamic-custom-liquid",
+      "settings": {
+        "custom_liquid": ""
+      }
+    },
+    "footer": {
+      "type": "static-footer",
+      "blocks": {
+        "menu_xYAV9X": {
+          "type": "menu",
+          "settings": {
+            "menu": "main-menu"
+          }
+        },
+        "social_accounts": {
+          "type": "social_accounts",
+          "settings": {
+          }
+        },
+        "menu": {
+          "type": "menu",
+          "settings": {
+            "menu": "home"
+          }
+        },
+        "newsletter": {
+          "type": "newsletter",
+          "settings": {
+            "title": "Subscribe",
+            "text": "<p>Invite customers to join your mailing list.<\/p>"
+          }
+        }
+      },
+      "block_order": [
+        "menu_xYAV9X",
+        "social_accounts",
+        "menu",
+        "newsletter"
+      ],
+      "settings": {
+        "show_follow_on_shop": true,
+        "payment_icons": true,
+        "show_locale_selector": true,
+        "show_currency_selector": true,
+        "additional_menu": "footer"
+      }
+    }
+  },
+  "order": [
+    "1c02cc5f-8f8b-4f08-ab7c-39a0896a2265",
+    "footer"
+  ]
+}
