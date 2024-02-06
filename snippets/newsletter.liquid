@@ -18,6 +18,11 @@
 <div class="newsletter">
   {% form 'customer', id: form_id %}
     {% if form.posted_successfully? %}
+        <script>
+    window.onload = function() {
+      window.scrollTo(0, document.body.scrollHeight);
+    };
+  </script>
       <p class="newsletter-success">
         {{ 'general.newsletter.success' | t }}
       </p>
@@ -63,11 +68,11 @@
   {% endform %}
 </div>
 
-{% if form.posted_successfully? %}
+<!-- {% if form.posted_successfully? %}
   <script>
     window.onload = function() {
       window.scrollTo(0, document.body.scrollHeight);
     };
   </script>
-{% endif %}
+{% endif %} -->
 
