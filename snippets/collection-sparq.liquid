@@ -1,0 +1,6 @@
+{%- assign sort = collection.default_sort_by -%}
+<div id="sparq-main-content">
+  {% render 'sparq-placeholder-loader' %}
+  {% render 'sparq-widget', sort: sort %}
+  {% render 'sparq-assets' %}
+</div>
